@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, X, Save, Camera } from "lucide-react";
 import { useRecipes } from "../hooks/useRecipes";
 import { useRawMaterials } from "../hooks/useRawMaterials";
 import { TagInput } from "../components/TagInput";
+import { IngredientSearch } from "../components/IngredientSearch";
 import type { RecipeIngredient } from "../types";
 
 export function RecipeFormPage() {
@@ -263,26 +264,21 @@ export function RecipeFormPage() {
                     }}
                     className="input"
                   >
-                    <option value="raw_material">Materia Prima</option>
+                    <option value="raw_material">Matéria Prima</option>
                     <option value="recipe">Receita</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1 text-muted-foreground">Item</label>
-                  <select
+                  <IngredientSearch
+                    options={addType === "raw_material"
+                      ? materials.map((m) => ({ id: m.id!, name: m.name }))
+                      : recipeOptions.map((r) => ({ id: r.id!, name: r.name }))
+                    }
                     value={addRefId}
-                    onChange={(e) => setAddRefId(e.target.value)}
-                    className="input"
-                  >
-                    <option value="">Selecione...</option>
-                    {addType === "raw_material"
-                      ? materials.map((m) => (
-                          <option key={m.id} value={m.id}>{m.name}</option>
-                        ))
-                      : recipeOptions.map((r) => (
-                          <option key={r.id} value={r.id}>{r.name}</option>
-                        ))}
-                  </select>
+                    onChange={setAddRefId}
+                    placeholder={addType === "raw_material" ? "Buscar matéria prima..." : "Buscar receita..."}
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-medium mb-1 text-muted-foreground">Qtd (g)</label>
