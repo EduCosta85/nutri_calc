@@ -21,7 +21,7 @@ export function RecipeFormPage() {
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [prepTimeMin, setPrepTimeMin] = useState(0);
-  const [photo, setPhoto] = useState<string | undefined>(undefined);
+  const [photo, setPhoto] = useState<string | null | undefined>(undefined);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   const [addType, setAddType] = useState<"raw_material" | "recipe">("raw_material");
@@ -80,7 +80,7 @@ export function RecipeFormPage() {
       ingredients,
       steps,
       prepTimeMin,
-      photo,
+      photo: photo ?? null,
     };
     if (isEditing && id) {
       await update(id, data);

@@ -32,7 +32,7 @@ export interface Recipe {
   ingredients: RecipeIngredient[];
   steps: string[];
   prepTimeMin: number;
-  photo?: string;
+  photo?: string | null;
 }
 
 export interface NutritionInfo {
