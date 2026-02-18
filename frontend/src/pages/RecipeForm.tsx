@@ -49,6 +49,18 @@ export function RecipeFormPage() {
 
   const recipeOptions = recipes.filter((r) => String(r.id) !== String(id));
 
+  /** Returns the unit of the selected ingredient (for raw_material only) */
+  function getSelectedUnit(): string {
+    if (addType !== "raw_material" || addRefId === "") return "g";
+    return materials.find((m) => String(m.id) === String(addRefId))?.unit ?? "g";
+  }
+
+  /** Returns the unit of any ingredient for display */
+  function getIngredientUnit(ing: RecipeIngredient): string {
+    if (ing.type === "recipe") return "g";
+    return materials.find((m) => String(m.id) === String(ing.referenceId))?.unit ?? "g";
+  }
+
   function addIngredient() {
     if (addRefId === "" || addQty <= 0) return;
     setIngredients((prev) => [
@@ -237,7 +249,7 @@ export function RecipeFormPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-muted-foreground">{ing.quantity}g</span>
+                      <span className="text-muted-foreground">{ing.quantity}{getIngredientUnit(ing)}</span>
                       <button
                         type="button"
                         onClick={() => removeIngredient(i)}
@@ -281,7 +293,7 @@ export function RecipeFormPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium mb-1 text-muted-foreground">Qtd (g)</label>
+                  <label className="block text-xs font-medium mb-1 text-muted-foreground">Qtd ({getSelectedUnit()})</label>
                   <input
                     type="number"
                     min="0.1"

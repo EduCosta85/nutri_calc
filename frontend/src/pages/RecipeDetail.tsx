@@ -32,6 +32,11 @@ export function RecipeDetailPage() {
     }
   }, [recipe]);
 
+  function getIngredientUnit(ing: RecipeIngredient): string {
+    if (ing.type === "recipe") return "g";
+    return materials.find((m) => String(m.id) === String(ing.referenceId))?.unit ?? "g";
+  }
+
   function getIngredientName(ing: RecipeIngredient): string {
     if (ing.type === "raw_material") {
       return materials.find((m) => String(m.id) === String(ing.referenceId))?.name ?? "???";
@@ -116,7 +121,7 @@ export function RecipeDetailPage() {
                     </span>
                   )}
                 </div>
-                <span className="text-muted-foreground font-medium">{ing.quantity}g</span>
+                <span className="text-muted-foreground font-medium">{ing.quantity}{getIngredientUnit(ing)}</span>
               </li>
             ))}
           </ul>
