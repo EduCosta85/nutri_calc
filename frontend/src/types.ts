@@ -1,5 +1,5 @@
 export interface RawMaterial {
-  id?: number;
+  id?: string | number;
   name: string;
   unit: string;
   tags: string[];
@@ -18,12 +18,12 @@ export interface RawMaterial {
 
 export interface RecipeIngredient {
   type: "raw_material" | "recipe";
-  referenceId: number;
+  referenceId: string | number;
   quantity: number;
 }
 
 export interface Recipe {
-  id?: number;
+  id?: string | number;
   name: string;
   tags: string[];
   yieldGrams: number;

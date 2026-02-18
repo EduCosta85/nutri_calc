@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Pencil, ArrowLeft, Clock, DollarSign } from "lucide-react";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "../db";
+import { useRecipes } from "../hooks/useRecipes";
+import { useRawMaterials } from "../hooks/useRawMaterials";
+import type { Recipe } from "../types";
 import type { NutritionInfo, RecipeIngredient } from "../types";
 import { calcRecipeNutrition } from "../utils/nutrition";
 import { calcRecipeCost } from "../utils/cost";
@@ -10,11 +11,19 @@ import { NutritionLabel } from "../components/NutritionLabel";
 
 export function RecipeDetailPage() {
   const { id } = useParams();
-  const recipe = useLiveQuery(() => db.recipes.get(Number(id)), [id]);
-  const materials = useLiveQuery(() => db.rawMaterials.toArray()) ?? [];
-  const recipes = useLiveQuery(() => db.recipes.toArray()) ?? [];
+  const { getById, recipes } = useRecipes();
+  const { materials } = useRawMaterials();
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [nutrition, setNutrition] = useState<NutritionInfo | null>(null);
   const [cost, setCost] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (id) {
+      getById(id).then((r) => {
+        if (r) setRecipe(r);
+      });
+    }
+  }, [id, getById]);
 
   useEffect(() => {
     if (recipe) {
@@ -23,15 +32,15 @@ export function RecipeDetailPage() {
     }
   }, [recipe]);
 
-  if (!recipe) {
-    return <p className="text-muted-foreground text-center py-12">Carregando...</p>;
-  }
-
   function getIngredientName(ing: RecipeIngredient): string {
     if (ing.type === "raw_material") {
-      return materials.find((m) => m.id === ing.referenceId)?.name ?? "???";
+      return materials.find((m) => String(m.id) === String(ing.referenceId))?.name ?? "???";
     }
-    return recipes.find((r) => r.id === ing.referenceId)?.name ?? "???";
+    return recipes.find((r) => String(r.id) === String(ing.referenceId))?.name ?? "???";
+  }
+
+  if (!recipe) {
+    return <p className="text-muted-foreground text-center py-12">Carregando...</p>;
   }
 
   return (

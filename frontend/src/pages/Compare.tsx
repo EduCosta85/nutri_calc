@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, GitCompareArrows } from "lucide-react";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "../db";
+import { useRecipes } from "../hooks/useRecipes";
 import type { NutritionInfo } from "../types";
 import { NUTRITION_ROWS } from "../types";
 import { calcRecipeNutrition, nutritionPer100g } from "../utils/nutrition";
@@ -13,14 +12,14 @@ function formatVal(n: number, unit: string): string {
 }
 
 export function ComparePage() {
-  const recipes = useLiveQuery(() => db.recipes.toArray()) ?? [];
-  const [idA, setIdA] = useState<number | "">("");
-  const [idB, setIdB] = useState<number | "">("");
+  const { recipes } = useRecipes();
+  const [idA, setIdA] = useState<string | number | "">("");
+  const [idB, setIdB] = useState<string | number | "">("");
   const [nutritionA, setNutritionA] = useState<NutritionInfo | null>(null);
   const [nutritionB, setNutritionB] = useState<NutritionInfo | null>(null);
 
-  const recipeA = recipes.find((r) => r.id === idA);
-  const recipeB = recipes.find((r) => r.id === idB);
+  const recipeA = recipes.find((r) => String(r.id) === String(idA));
+  const recipeB = recipes.find((r) => String(r.id) === String(idB));
 
   useEffect(() => {
     if (recipeA) calcRecipeNutrition(recipeA).then(setNutritionA);
@@ -57,7 +56,7 @@ export function ComparePage() {
             <label className="block text-sm font-medium mb-1.5">Receita A</label>
             <select
               value={idA}
-              onChange={(e) => setIdA(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) => setIdA(e.target.value ? e.target.value : "")}
               className="input"
             >
               <option value="">Selecione...</option>
@@ -70,7 +69,7 @@ export function ComparePage() {
             <label className="block text-sm font-medium mb-1.5">Receita B</label>
             <select
               value={idB}
-              onChange={(e) => setIdB(e.target.value ? Number(e.target.value) : "")}
+              onChange={(e) => setIdB(e.target.value ? e.target.value : "")}
               className="input"
             >
               <option value="">Selecione...</option>

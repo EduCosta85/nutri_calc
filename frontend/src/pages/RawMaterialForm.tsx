@@ -46,11 +46,11 @@ export function RawMaterialFormPage() {
 
   useEffect(() => {
     if (id) {
-      getById(Number(id)).then((m) => {
+      getById(id).then((m) => {
         if (m) setForm(m);
       });
     }
-  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, getById]);
 
   function set(field: keyof typeof form, value: string | number) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -75,8 +75,8 @@ export function RawMaterialFormPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (isEditing) {
-      await update(Number(id), form);
+    if (isEditing && id) {
+      await update(id, form);
     } else {
       await add(form);
     }

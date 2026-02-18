@@ -1,5 +1,4 @@
-import { db } from "../db";
-import type { NutritionInfo, Recipe, RecipeIngredient } from "../types";
+import type { RawMaterial, NutritionInfo, Recipe, RecipeIngredient } from "../types";
 
 const EMPTY: NutritionInfo = {
   calories: 0,
@@ -16,6 +15,18 @@ const EMPTY: NutritionInfo = {
 
 const KEYS = Object.keys(EMPTY) as (keyof NutritionInfo)[];
 
+// Cache for materials and recipes
+let materialsCache: Map<string | number, RawMaterial> = new Map();
+let recipesCache: Map<string | number, Recipe> = new Map();
+
+export function setMaterialsCache(mats: RawMaterial[]) {
+  materialsCache = new Map(mats.map(m => [m.id!, m]));
+}
+
+export function setRecipesCache(recs: Recipe[]) {
+  recipesCache = new Map(recs.map(r => [r.id!, r]));
+}
+
 function scale(info: NutritionInfo, factor: number): NutritionInfo {
   const out = { ...EMPTY };
   for (const k of KEYS) out[k] = info[k] * factor;
@@ -30,10 +41,10 @@ function sum(a: NutritionInfo, b: NutritionInfo): NutritionInfo {
 
 async function calcIngredient(
   ingredient: RecipeIngredient,
-  visited: Set<number>,
+  visited: Set<string | number>,
 ): Promise<NutritionInfo> {
   if (ingredient.type === "raw_material") {
-    const mat = await db.rawMaterials.get(ingredient.referenceId);
+    const mat = materialsCache.get(ingredient.referenceId);
     if (!mat) return EMPTY;
     const factor = ingredient.quantity / 100;
     return {
@@ -52,7 +63,7 @@ async function calcIngredient(
 
   if (visited.has(ingredient.referenceId)) return EMPTY;
 
-  const recipe = await db.recipes.get(ingredient.referenceId);
+  const recipe = recipesCache.get(ingredient.referenceId);
   if (!recipe || recipe.yieldGrams === 0) return EMPTY;
 
   const recipeTotal = await calcRecipeNutrition(recipe, new Set(visited));
@@ -61,7 +72,7 @@ async function calcIngredient(
 
 export async function calcRecipeNutrition(
   recipe: Recipe,
-  visited: Set<number> = new Set(),
+  visited: Set<string | number> = new Set(),
 ): Promise<NutritionInfo> {
   if (recipe.id !== undefined) visited.add(recipe.id);
 

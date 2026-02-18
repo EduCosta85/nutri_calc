@@ -1,14 +1,18 @@
 import { Link } from "react-router-dom";
 import { Wheat, BookOpen, Plus, ArrowRight, GitCompareArrows } from "lucide-react";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "../db";
+import { useRecipes } from "../hooks/useRecipes";
+import { useRawMaterials } from "../hooks/useRawMaterials";
 
 export function DashboardPage() {
-  const materials = useLiveQuery(() => db.rawMaterials.toArray()) ?? [];
-  const recipes = useLiveQuery(() => db.recipes.toArray()) ?? [];
+  const { recipes } = useRecipes();
+  const { materials } = useRawMaterials();
 
   const recentRecipes = [...recipes]
-    .sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
+    .sort((a, b) => {
+      const idA = typeof a.id === "string" ? parseInt(a.id) : (a.id ?? 0);
+      const idB = typeof b.id === "string" ? parseInt(b.id) : (b.id ?? 0);
+      return idB - idA;
+    })
     .slice(0, 5);
 
   const allTags = [

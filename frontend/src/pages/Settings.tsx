@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
-import { Download, Upload, Trash2, AlertTriangle } from "lucide-react";
-import { db } from "../db";
+import { Download, Upload, Trash2, AlertTriangle, LogOut, User } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useRecipes } from "../hooks/useRecipes";
+import { useRawMaterials } from "../hooks/useRawMaterials";
 import type { RawMaterial, Recipe } from "../types";
 
 interface ExportData {
@@ -11,19 +13,6 @@ interface ExportData {
 }
 
 const EXPORT_VERSION = 1;
-
-async function exportDatabase(): Promise<ExportData> {
-  const [rawMaterials, recipes] = await Promise.all([
-    db.rawMaterials.toArray(),
-    db.recipes.toArray(),
-  ]);
-  return {
-    version: EXPORT_VERSION,
-    exportedAt: new Date().toISOString(),
-    rawMaterials,
-    recipes,
-  };
-}
 
 function downloadJson(data: ExportData) {
   const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -37,42 +26,15 @@ function downloadJson(data: ExportData) {
   URL.revokeObjectURL(url);
 }
 
-function isValidExport(data: unknown): data is ExportData {
-  if (typeof data !== "object" || data === null) return false;
-  const obj = data as Record<string, unknown>;
-  return (
-    typeof obj.version === "number" &&
-    Array.isArray(obj.rawMaterials) &&
-    Array.isArray(obj.recipes)
-  );
-}
-
-async function importDatabase(data: ExportData): Promise<{ materials: number; recipes: number }> {
-  await db.transaction("rw", db.rawMaterials, db.recipes, async () => {
-    await db.rawMaterials.clear();
-    await db.recipes.clear();
-    await db.rawMaterials.bulkAdd(data.rawMaterials);
-    await db.recipes.bulkAdd(data.recipes);
-  });
-  return {
-    materials: data.rawMaterials.length,
-    recipes: data.recipes.length,
-  };
-}
-
-async function resetDatabase() {
-  await db.transaction("rw", db.rawMaterials, db.recipes, async () => {
-    await db.rawMaterials.clear();
-    await db.recipes.clear();
-  });
-}
-
 type FeedbackState =
   | { type: "idle" }
   | { type: "success"; message: string }
   | { type: "error"; message: string };
 
 export function SettingsPage() {
+  const { user, signOut } = useAuth();
+  const { recipes } = useRecipes();
+  const { materials } = useRawMaterials();
   const [feedback, setFeedback] = useState<FeedbackState>({ type: "idle" });
   const [confirmReset, setConfirmReset] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -84,9 +46,14 @@ export function SettingsPage() {
     }
   }
 
-  async function handleExport() {
+  function handleExport() {
     try {
-      const data = await exportDatabase();
+      const data: ExportData = {
+        version: EXPORT_VERSION,
+        exportedAt: new Date().toISOString(),
+        rawMaterials: materials,
+        recipes: recipes,
+      };
       downloadJson(data);
       showFeedback({ type: "success", message: "Backup exportado com sucesso!" });
     } catch {
@@ -102,25 +69,9 @@ export function SettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    try {
-      const text = await file.text();
-      const data: unknown = JSON.parse(text);
-
-      if (!isValidExport(data)) {
-        showFeedback({ type: "error", message: "Arquivo invalido. Formato nao reconhecido." });
-        return;
-      }
-
-      const result = await importDatabase(data);
-      showFeedback({
-        type: "success",
-        message: `Importado: ${result.materials} materias primas e ${result.recipes} receitas.`,
-      });
-    } catch {
-      showFeedback({ type: "error", message: "Erro ao ler o arquivo. Verifique o formato." });
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
+    showFeedback({ type: "error", message: "A importacao de dados do backup antigo ainda nao foi implementada. Os dados estao sincronizados na nuvem." });
+    
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   async function handleReset() {
@@ -128,12 +79,15 @@ export function SettingsPage() {
       setConfirmReset(true);
       return;
     }
+    showFeedback({ type: "error", message: "A funcao de reset ainda nao foi implementada." });
+    setConfirmReset(false);
+  }
+
+  async function handleSignOut() {
     try {
-      await resetDatabase();
-      setConfirmReset(false);
-      showFeedback({ type: "success", message: "Banco de dados resetado." });
+      await signOut();
     } catch {
-      showFeedback({ type: "error", message: "Erro ao resetar o banco." });
+      showFeedback({ type: "error", message: "Erro ao fazer logout." });
     }
   }
 
@@ -155,6 +109,25 @@ export function SettingsPage() {
       )}
 
       <div className="max-w-xl mx-auto space-y-6">
+        {/* Account */}
+        <div className="card">
+          <div className="flex items-start gap-4">
+            <div className="p-2.5 rounded-lg bg-blue-10 text-blue-600">
+              <User size={20} />
+            </div>
+            <div className="flex-1">
+              <h2 className="font-semibold mb-1">Conta</h2>
+              <p className="text-sm text-muted-foreground mb-3">
+                {user?.email}
+              </p>
+              <button onClick={handleSignOut} className="btn btn-secondary text-sm">
+                <LogOut size={16} />
+                Sair da conta
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Export */}
         <div className="card">
           <div className="flex items-start gap-4">

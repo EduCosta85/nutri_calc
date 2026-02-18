@@ -5,9 +5,9 @@ import { useRawMaterials } from "../hooks/useRawMaterials";
 export function RawMaterialsPage() {
   const { materials, remove } = useRawMaterials();
 
-  async function handleDelete(id: number, name: string) {
+  async function handleDelete(id: string | number, name: string) {
     if (window.confirm(`Excluir "${name}"?`)) {
-      await remove(id);
+      await remove(String(id));
     }
   }
 

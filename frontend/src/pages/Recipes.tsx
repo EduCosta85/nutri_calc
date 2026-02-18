@@ -6,14 +6,14 @@ export function RecipesPage() {
   const { recipes, remove, add } = useRecipes();
   const navigate = useNavigate();
 
-  async function handleDelete(id: number, name: string) {
+  async function handleDelete(id: string | number, name: string) {
     if (window.confirm(`Excluir "${name}"?`)) {
-      await remove(id);
+      await remove(String(id));
     }
   }
 
-  async function handleDuplicate(id: number) {
-    const original = recipes.find((r) => r.id === id);
+  async function handleDuplicate(id: string | number) {
+    const original = recipes.find((r) => String(r.id) === String(id));
     if (!original) return;
     const { id: _id, ...rest } = original;
     const newId = await add({ ...rest, name: `${rest.name} (copia)` });

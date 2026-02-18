@@ -25,12 +25,12 @@ export function RecipeFormPage() {
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   const [addType, setAddType] = useState<"raw_material" | "recipe">("raw_material");
-  const [addRefId, setAddRefId] = useState<number | "">("");
+  const [addRefId, setAddRefId] = useState<string | number | "">("");
   const [addQty, setAddQty] = useState<number>(0);
 
   useEffect(() => {
     if (id) {
-      getById(Number(id)).then((r) => {
+      getById(id).then((r) => {
         if (r) {
           setName(r.name);
           setTags(r.tags ?? []);
@@ -44,15 +44,15 @@ export function RecipeFormPage() {
         }
       });
     }
-  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, getById]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const recipeOptions = recipes.filter((r) => r.id !== Number(id));
+  const recipeOptions = recipes.filter((r) => String(r.id) !== String(id));
 
   function addIngredient() {
     if (addRefId === "" || addQty <= 0) return;
     setIngredients((prev) => [
       ...prev,
-      { type: addType, referenceId: Number(addRefId), quantity: addQty },
+      { type: addType, referenceId: addRefId, quantity: addQty },
     ]);
     setAddRefId("");
     setAddQty(0);
@@ -64,9 +64,9 @@ export function RecipeFormPage() {
 
   function getIngredientName(ing: RecipeIngredient): string {
     if (ing.type === "raw_material") {
-      return materials.find((m) => m.id === ing.referenceId)?.name ?? "???";
+      return materials.find((m) => String(m.id) === String(ing.referenceId))?.name ?? "???";
     }
-    return recipes.find((r) => r.id === ing.referenceId)?.name ?? "???";
+    return recipes.find((r) => String(r.id) === String(ing.referenceId))?.name ?? "???";
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -82,8 +82,8 @@ export function RecipeFormPage() {
       prepTimeMin,
       photo,
     };
-    if (isEditing) {
-      await update(Number(id), data);
+    if (isEditing && id) {
+      await update(id, data);
     } else {
       await add(data);
     }
@@ -271,7 +271,7 @@ export function RecipeFormPage() {
                   <label className="block text-xs font-medium mb-1 text-muted-foreground">Item</label>
                   <select
                     value={addRefId}
-                    onChange={(e) => setAddRefId(Number(e.target.value))}
+                    onChange={(e) => setAddRefId(e.target.value)}
                     className="input"
                   >
                     <option value="">Selecione...</option>
