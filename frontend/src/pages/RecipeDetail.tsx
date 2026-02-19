@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Pencil, ArrowLeft, Clock, DollarSign, Trash2, Save, X, Plus, ChevronUp } from "lucide-react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Pencil, ArrowLeft, Clock, DollarSign, Trash2, Save, X, Plus, ChevronUp, Copy } from "lucide-react";
 import { useRecipes } from "../hooks/useRecipes";
 import { useRawMaterials } from "../hooks/useRawMaterials";
 import type { Recipe } from "../types";
@@ -12,7 +12,8 @@ import { IngredientSearch } from "../components/IngredientSearch";
 
 export function RecipeDetailPage() {
   const { id } = useParams();
-  const { getById, recipes, update } = useRecipes();
+  const navigate = useNavigate();
+  const { getById, recipes, update, add } = useRecipes();
   const { materials } = useRawMaterials();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [nutrition, setNutrition] = useState<NutritionInfo | null>(null);
@@ -191,6 +192,22 @@ export function RecipeDetailPage() {
     return materials.find((m) => String(m.id) === String(refId))?.unit ?? "g";
   }
 
+  async function handleDuplicate() {
+    if (!recipe) return;
+    const newRecipeId = await add({
+      name: `Cópia de ${recipe.name}`,
+      tags: recipe.tags,
+      yieldGrams: recipe.yieldGrams,
+      servingSize: recipe.servingSize,
+      servingName: recipe.servingName,
+      ingredients: recipe.ingredients,
+      steps: recipe.steps,
+      prepTimeMin: recipe.prepTimeMin,
+      photo: recipe.photo ?? null,
+    });
+    navigate(`/receitas/${newRecipeId}/editar`);
+  }
+
   if (!recipe) {
     return <p className="text-muted-foreground text-center py-12">Carregando...</p>;
   }
@@ -219,10 +236,20 @@ export function RecipeDetailPage() {
         <div className="card">
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-xl font-bold">{recipe.name}</h1>
-            <Link to={`/receitas/${id}/editar`} className="btn btn-secondary text-sm !px-3 !py-1.5">
-              <Pencil size={14} />
-              Editar
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleDuplicate}
+                className="btn btn-secondary text-sm !px-3 !py-1.5"
+                title="Duplicar receita"
+              >
+                <Copy size={14} />
+                Duplicar
+              </button>
+              <Link to={`/receitas/${id}/editar`} className="btn btn-secondary text-sm !px-3 !py-1.5">
+                <Pencil size={14} />
+                Editar
+              </Link>
+            </div>
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
             <p>

@@ -7,6 +7,7 @@ import { RawMaterialFormPage } from "./pages/RawMaterialForm";
 import { RecipesPage } from "./pages/Recipes";
 import { RecipeFormPage } from "./pages/RecipeForm";
 import { RecipeDetailPage } from "./pages/RecipeDetail";
+import { RecipeComparePage } from "./pages/RecipeCompare";
 import { SettingsPage } from "./pages/Settings";
 import { ComparePage } from "./pages/Compare";
 import { LoginPage } from "./pages/LoginPage";
@@ -42,6 +43,7 @@ function AppRoutes() {
         <Route path="/materias-primas/:id" element={<RawMaterialFormPage />} />
         <Route path="/receitas" element={<RecipesPage />} />
         <Route path="/receitas/nova" element={<RecipeFormPage />} />
+        <Route path="/receitas/comparar/:id1/:id2" element={<RecipeComparePage />} />
         <Route path="/receitas/:id" element={<RecipeDetailPage />} />
         <Route path="/receitas/:id/editar" element={<RecipeFormPage />} />
         <Route path="/comparar" element={<ComparePage />} />
