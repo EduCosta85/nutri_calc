@@ -239,8 +239,15 @@ export function RecipeDetailPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="text-right px-3 py-2.5 tabular-nums text-muted-foreground">
-                        {ing.quantity}{getIngredientUnit(ing)}
+                      <td className="text-right px-3 py-2.5 text-muted-foreground">
+                        <div className="flex flex-col items-end">
+                          <span className="tabular-nums">{ing.quantity}{getIngredientUnit(ing)}</span>
+                          {recipe.yieldGrams > 0 && (
+                            <span className="text-xs text-muted-foreground/70">
+                              {((ing.quantity / recipe.yieldGrams) * 100).toFixed(1)}%
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="text-right px-3 py-2.5 text-muted-foreground">
                         {ingredientCosts.has(i) && ingredientCosts.get(i)! > 0 ? (
