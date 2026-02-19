@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   collection,
   doc,
@@ -64,7 +64,7 @@ export function useRawMaterials() {
     await deleteDoc(materialRef);
   }
 
-  async function getMaterialById(id: string) {
+  const getMaterialById = useCallback(async (id: string) => {
     if (!user) throw new Error("Must be authenticated");
     const materialRef = doc(db, `users/${user.uid}/rawMaterials`, id);
     const docSnap = await getDoc(materialRef);
@@ -72,7 +72,7 @@ export function useRawMaterials() {
       return { id: docSnap.id, ...docSnap.data() } as RawMaterial;
     }
     return null;
-  }
+  }, [user]);
 
   return { materials, loading, add: addMaterial, update: updateMaterial, remove: removeMaterial, getById: getMaterialById };
 }

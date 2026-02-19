@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   collection,
   doc,
@@ -66,7 +66,7 @@ export function useRecipes() {
     await deleteDoc(recipeRef);
   }
 
-  async function getRecipeById(id: string) {
+  const getRecipeById = useCallback(async (id: string) => {
     if (!user) throw new Error("Must be authenticated");
     const recipeRef = doc(db, `users/${user.uid}/recipes`, id);
     const docSnap = await getDoc(recipeRef);
@@ -74,7 +74,7 @@ export function useRecipes() {
       return { id: docSnap.id, ...docSnap.data() } as Recipe;
     }
     return null;
-  }
+  }, [user]);
 
   return { recipes, loading, add: addRecipe, update: updateRecipe, remove: removeRecipe, getById: getRecipeById };
 }
