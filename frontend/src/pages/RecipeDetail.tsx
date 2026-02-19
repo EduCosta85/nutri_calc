@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Pencil, ArrowLeft, Clock, DollarSign, Trash2, Save, X, Plus, ChevronUp, ChevronDown } from "lucide-react";
+import { Pencil, ArrowLeft, Clock, DollarSign, Trash2, Save, X, Plus, ChevronUp } from "lucide-react";
 import { useRecipes } from "../hooks/useRecipes";
 import { useRawMaterials } from "../hooks/useRawMaterials";
 import type { Recipe } from "../types";
@@ -21,7 +21,6 @@ export function RecipeDetailPage() {
   const [ingredientNutrition, setIngredientNutrition] = useState<Map<number, NutritionInfo>>(new Map());
   
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [editType, setEditType] = useState<"raw_material" | "recipe">("raw_material");
   const [editRefId, setEditRefId] = useState<string | number | "">("");
   const [editQty, setEditQty] = useState(0);
@@ -181,7 +180,6 @@ export function RecipeDetailPage() {
     setEditQty(ing.quantity);
     setEditingIndex(index);
     setShowAddNew(false);
-    setExpandedIndex(null);
   }
 
   function cancelEdit() {
@@ -259,7 +257,7 @@ export function RecipeDetailPage() {
             </h2>
             {!showAddNew && (
               <button
-                onClick={() => { setShowAddNew(true); setEditingIndex(null); setExpandedIndex(null); }}
+                onClick={() => { setShowAddNew(true); setEditingIndex(null); }}
                 className="btn btn-primary !text-xs !px-2 !py-1"
               >
                 <Plus size={14} /> Adicionar
@@ -273,6 +271,10 @@ export function RecipeDetailPage() {
                 <tr className="border-b border-border bg-secondary/40">
                   <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Ingrediente</th>
                   <th className="text-right px-3 py-2.5 font-medium text-muted-foreground">Quantidade</th>
+                  <th className="text-right px-3 py-2.5 font-medium text-muted-foreground">Kcal</th>
+                  <th className="text-right px-3 py-2.5 font-medium text-muted-foreground">Carb</th>
+                  <th className="text-right px-3 py-2.5 font-medium text-muted-foreground">Prot</th>
+                  <th className="text-right px-3 py-2.5 font-medium text-muted-foreground">Gord</th>
                   <th className="text-right px-3 py-2.5 font-medium text-muted-foreground">Custo</th>
                   <th className="px-3 py-2.5"></th>
                 </tr>
@@ -282,7 +284,7 @@ export function RecipeDetailPage() {
                   <>
                     <tr
                       key={i}
-                      className={`${i < recipe.ingredients.length - 1 || editingIndex === i || expandedIndex === i || showAddNew ? "border-b border-border" : ""} hover:bg-secondary/30 transition-colors`}
+                      className={`${i < recipe.ingredients.length - 1 || editingIndex === i || showAddNew ? "border-b border-border" : ""} hover:bg-secondary/30 transition-colors`}
                     >
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2">
@@ -307,6 +309,62 @@ export function RecipeDetailPage() {
                         </div>
                       </td>
                       <td className="text-right px-3 py-2.5 text-muted-foreground">
+                        {ingredientNutrition.has(i) ? (
+                          <div className="flex flex-col items-end">
+                            <span className="tabular-nums">{ingredientNutrition.get(i)!.calories.toFixed(1)}</span>
+                            {nutrition && nutrition.calories > 0 && (
+                              <span className="text-xs text-muted-foreground/70">
+                                {((ingredientNutrition.get(i)!.calories / nutrition.calories) * 100).toFixed(1)}%
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span>—</span>
+                        )}
+                      </td>
+                      <td className="text-right px-3 py-2.5 text-muted-foreground">
+                        {ingredientNutrition.has(i) ? (
+                          <div className="flex flex-col items-end">
+                            <span className="tabular-nums">{ingredientNutrition.get(i)!.carbs.toFixed(1)}g</span>
+                            {nutrition && nutrition.carbs > 0 && (
+                              <span className="text-xs text-muted-foreground/70">
+                                {((ingredientNutrition.get(i)!.carbs / nutrition.carbs) * 100).toFixed(1)}%
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span>—</span>
+                        )}
+                      </td>
+                      <td className="text-right px-3 py-2.5 text-muted-foreground">
+                        {ingredientNutrition.has(i) ? (
+                          <div className="flex flex-col items-end">
+                            <span className="tabular-nums">{ingredientNutrition.get(i)!.protein.toFixed(1)}g</span>
+                            {nutrition && nutrition.protein > 0 && (
+                              <span className="text-xs text-muted-foreground/70">
+                                {((ingredientNutrition.get(i)!.protein / nutrition.protein) * 100).toFixed(1)}%
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span>—</span>
+                        )}
+                      </td>
+                      <td className="text-right px-3 py-2.5 text-muted-foreground">
+                        {ingredientNutrition.has(i) ? (
+                          <div className="flex flex-col items-end">
+                            <span className="tabular-nums">{ingredientNutrition.get(i)!.totalFat.toFixed(1)}g</span>
+                            {nutrition && nutrition.totalFat > 0 && (
+                              <span className="text-xs text-muted-foreground/70">
+                                {((ingredientNutrition.get(i)!.totalFat / nutrition.totalFat) * 100).toFixed(1)}%
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span>—</span>
+                        )}
+                      </td>
+                      <td className="text-right px-3 py-2.5 text-muted-foreground">
                         {ingredientCosts.has(i) && ingredientCosts.get(i)! > 0 ? (
                           <div className="flex flex-col items-end">
                             <span className="tabular-nums">R$ {ingredientCosts.get(i)!.toFixed(2)}</span>
@@ -323,21 +381,11 @@ export function RecipeDetailPage() {
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-1 justify-end">
                           <button
-                            onClick={() => {
-                              setExpandedIndex(expandedIndex === i ? null : i);
-                              if (expandedIndex !== i) setEditingIndex(null);
-                            }}
-                            className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
-                            title="Ver macros"
-                          >
-                            {expandedIndex === i ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                          </button>
-                          <button
                             onClick={() => editingIndex === i ? cancelEdit() : startEdit(i)}
                             className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
                             title="Editar"
                           >
-                            <Pencil size={16} />
+                            {editingIndex === i ? <ChevronUp size={16} /> : <Pencil size={16} />}
                           </button>
                           <button
                             onClick={() => handleRemoveIngredient(i)}
@@ -350,64 +398,10 @@ export function RecipeDetailPage() {
                       </td>
                     </tr>
 
-                    {/* Nutrition details row */}
-                    {expandedIndex === i && ingredientNutrition.has(i) && (
-                      <tr key={`${i}-nutrition`} className="border-b border-border bg-secondary/20">
-                        <td colSpan={4} className="px-4 py-3">
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                            <div>
-                              <span className="text-muted-foreground">Calorias:</span>
-                              <div className="font-medium">
-                                {ingredientNutrition.get(i)!.calories.toFixed(1)} kcal
-                                {nutrition && nutrition.calories > 0 && (
-                                  <span className="ml-1 text-muted-foreground/70">
-                                    ({((ingredientNutrition.get(i)!.calories / nutrition.calories) * 100).toFixed(1)}%)
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Carboidratos:</span>
-                              <div className="font-medium">
-                                {ingredientNutrition.get(i)!.carbs.toFixed(1)}g
-                                {nutrition && nutrition.carbs > 0 && (
-                                  <span className="ml-1 text-muted-foreground/70">
-                                    ({((ingredientNutrition.get(i)!.carbs / nutrition.carbs) * 100).toFixed(1)}%)
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Proteínas:</span>
-                              <div className="font-medium">
-                                {ingredientNutrition.get(i)!.protein.toFixed(1)}g
-                                {nutrition && nutrition.protein > 0 && (
-                                  <span className="ml-1 text-muted-foreground/70">
-                                    ({((ingredientNutrition.get(i)!.protein / nutrition.protein) * 100).toFixed(1)}%)
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Gorduras:</span>
-                              <div className="font-medium">
-                                {ingredientNutrition.get(i)!.totalFat.toFixed(1)}g
-                                {nutrition && nutrition.totalFat > 0 && (
-                                  <span className="ml-1 text-muted-foreground/70">
-                                    ({((ingredientNutrition.get(i)!.totalFat / nutrition.totalFat) * 100).toFixed(1)}%)
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-
                     {/* Inline edit row */}
                     {editingIndex === i && (
                       <tr key={`${i}-edit`} className="border-b border-border">
-                        <td colSpan={4} className="px-4 py-4">
+                        <td colSpan={8} className="px-4 py-4">
                           <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
                             <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr_5rem] gap-3 items-end">
                               <div>
@@ -473,7 +467,7 @@ export function RecipeDetailPage() {
                 {/* Add new ingredient row */}
                 {showAddNew && (
                   <tr className="border-b border-border">
-                    <td colSpan={4} className="px-4 py-4">
+                    <td colSpan={8} className="px-4 py-4">
                       <div className="bg-secondary/30 rounded-xl p-4 space-y-3">
                         <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr_5rem] gap-3 items-end">
                           <div>
