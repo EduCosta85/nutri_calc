@@ -230,20 +230,31 @@ export function RecipeDetailPage() {
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{getIngredientName(ing)}</span>
-                          {ing.type === "recipe" && (
-                            <span className="text-xs bg-accent text-accent-foreground px-1.5 py-0.5 rounded font-medium">
-                              receita
-                            </span>
-                          )}
+                          <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                            ing.type === "recipe" 
+                              ? "bg-accent text-accent-foreground" 
+                              : "bg-primary/10 text-primary"
+                          }`}>
+                            {ing.type === "recipe" ? "receita" : "ingrediente"}
+                          </span>
                         </div>
                       </td>
                       <td className="text-right px-3 py-2.5 tabular-nums text-muted-foreground">
                         {ing.quantity}{getIngredientUnit(ing)}
                       </td>
-                      <td className="text-right px-3 py-2.5 tabular-nums text-muted-foreground">
-                        {ingredientCosts.has(i) && ingredientCosts.get(i)! > 0
-                          ? `R$ ${ingredientCosts.get(i)!.toFixed(2)}`
-                          : "—"}
+                      <td className="text-right px-3 py-2.5 text-muted-foreground">
+                        {ingredientCosts.has(i) && ingredientCosts.get(i)! > 0 ? (
+                          <div className="flex flex-col items-end">
+                            <span className="tabular-nums">R$ {ingredientCosts.get(i)!.toFixed(2)}</span>
+                            {cost !== null && cost > 0 && (
+                              <span className="text-xs text-muted-foreground/70">
+                                {((ingredientCosts.get(i)! / cost) * 100).toFixed(1)}%
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span>—</span>
+                        )}
                       </td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-1 justify-end">
