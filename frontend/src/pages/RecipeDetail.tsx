@@ -205,7 +205,7 @@ export function RecipeDetailPage() {
         Voltar
       </Link>
 
-      <div className="max-w-xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Photo */}
         {recipe.photo && (
           <img
@@ -269,14 +269,14 @@ export function RecipeDetailPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-secondary/40">
-                  <th className="text-left px-4 py-2.5 font-medium text-muted-foreground">Ingrediente</th>
-                  <th className="text-right px-3 py-2.5 font-medium text-muted-foreground">Quantidade</th>
-                  <th className="text-right px-3 py-2.5 font-medium text-muted-foreground">Kcal</th>
-                  <th className="text-right px-3 py-2.5 font-medium text-muted-foreground">Carb</th>
-                  <th className="text-right px-3 py-2.5 font-medium text-muted-foreground">Prot</th>
-                  <th className="text-right px-3 py-2.5 font-medium text-muted-foreground">Gord</th>
-                  <th className="text-right px-3 py-2.5 font-medium text-muted-foreground">Custo</th>
-                  <th className="px-3 py-2.5"></th>
+                  <th className="text-left px-2 py-2 font-medium text-muted-foreground text-xs">Ingrediente</th>
+                  <th className="text-right px-1.5 py-2 font-medium text-muted-foreground text-xs">Qtd</th>
+                  <th className="text-right px-1.5 py-2 font-medium text-muted-foreground text-xs">Kcal</th>
+                  <th className="text-right px-1.5 py-2 font-medium text-muted-foreground text-xs">Carb</th>
+                  <th className="text-right px-1.5 py-2 font-medium text-muted-foreground text-xs">Prot</th>
+                  <th className="text-right px-1.5 py-2 font-medium text-muted-foreground text-xs">Gord</th>
+                  <th className="text-right px-1.5 py-2 font-medium text-muted-foreground text-xs">R$</th>
+                  <th className="px-1.5 py-2 w-20"></th>
                 </tr>
               </thead>
               <tbody>
@@ -286,113 +286,115 @@ export function RecipeDetailPage() {
                       key={i}
                       className={`${i < recipe.ingredients.length - 1 || editingIndex === i || showAddNew ? "border-b border-border" : ""} hover:bg-secondary/30 transition-colors`}
                     >
-                      <td className="px-4 py-2.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{getIngredientName(ing)}</span>
-                          <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                      <td className="px-2 py-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-medium truncate max-w-[180px]" title={getIngredientName(ing)}>
+                            {getIngredientName(ing)}
+                          </span>
+                          <span className={`text-[10px] px-1 py-0.5 rounded font-medium shrink-0 ${
                             ing.type === "recipe" 
                               ? "bg-accent text-accent-foreground" 
                               : "bg-primary/10 text-primary"
                           }`}>
-                            {ing.type === "recipe" ? "receita" : "ingrediente"}
+                            {ing.type === "recipe" ? "R" : "I"}
                           </span>
                         </div>
                       </td>
-                      <td className="text-right px-3 py-2.5 text-muted-foreground">
+                      <td className="text-right px-1.5 py-2 text-muted-foreground">
                         <div className="flex flex-col items-end">
-                          <span className="tabular-nums">{ing.quantity}{getIngredientUnit(ing)}</span>
+                          <span className="tabular-nums text-xs">{ing.quantity}{getIngredientUnit(ing)}</span>
                           {recipe.yieldGrams > 0 && (
-                            <span className="text-xs text-muted-foreground/70">
-                              {((ing.quantity / recipe.yieldGrams) * 100).toFixed(1)}%
+                            <span className="text-[10px] text-muted-foreground/70">
+                              {((ing.quantity / recipe.yieldGrams) * 100).toFixed(0)}%
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="text-right px-3 py-2.5 text-muted-foreground">
+                      <td className="text-right px-1.5 py-2 text-muted-foreground">
                         {ingredientNutrition.has(i) ? (
                           <div className="flex flex-col items-end">
-                            <span className="tabular-nums">{ingredientNutrition.get(i)!.calories.toFixed(1)}</span>
+                            <span className="tabular-nums text-xs">{ingredientNutrition.get(i)!.calories.toFixed(0)}</span>
                             {nutrition && nutrition.calories > 0 && (
-                              <span className="text-xs text-muted-foreground/70">
-                                {((ingredientNutrition.get(i)!.calories / nutrition.calories) * 100).toFixed(1)}%
+                              <span className="text-[10px] text-muted-foreground/70">
+                                {((ingredientNutrition.get(i)!.calories / nutrition.calories) * 100).toFixed(0)}%
                               </span>
                             )}
                           </div>
                         ) : (
-                          <span>—</span>
+                          <span className="text-xs">—</span>
                         )}
                       </td>
-                      <td className="text-right px-3 py-2.5 text-muted-foreground">
+                      <td className="text-right px-1.5 py-2 text-muted-foreground">
                         {ingredientNutrition.has(i) ? (
                           <div className="flex flex-col items-end">
-                            <span className="tabular-nums">{ingredientNutrition.get(i)!.carbs.toFixed(1)}g</span>
+                            <span className="tabular-nums text-xs">{ingredientNutrition.get(i)!.carbs.toFixed(1)}</span>
                             {nutrition && nutrition.carbs > 0 && (
-                              <span className="text-xs text-muted-foreground/70">
-                                {((ingredientNutrition.get(i)!.carbs / nutrition.carbs) * 100).toFixed(1)}%
+                              <span className="text-[10px] text-muted-foreground/70">
+                                {((ingredientNutrition.get(i)!.carbs / nutrition.carbs) * 100).toFixed(0)}%
                               </span>
                             )}
                           </div>
                         ) : (
-                          <span>—</span>
+                          <span className="text-xs">—</span>
                         )}
                       </td>
-                      <td className="text-right px-3 py-2.5 text-muted-foreground">
+                      <td className="text-right px-1.5 py-2 text-muted-foreground">
                         {ingredientNutrition.has(i) ? (
                           <div className="flex flex-col items-end">
-                            <span className="tabular-nums">{ingredientNutrition.get(i)!.protein.toFixed(1)}g</span>
+                            <span className="tabular-nums text-xs">{ingredientNutrition.get(i)!.protein.toFixed(1)}</span>
                             {nutrition && nutrition.protein > 0 && (
-                              <span className="text-xs text-muted-foreground/70">
-                                {((ingredientNutrition.get(i)!.protein / nutrition.protein) * 100).toFixed(1)}%
+                              <span className="text-[10px] text-muted-foreground/70">
+                                {((ingredientNutrition.get(i)!.protein / nutrition.protein) * 100).toFixed(0)}%
                               </span>
                             )}
                           </div>
                         ) : (
-                          <span>—</span>
+                          <span className="text-xs">—</span>
                         )}
                       </td>
-                      <td className="text-right px-3 py-2.5 text-muted-foreground">
+                      <td className="text-right px-1.5 py-2 text-muted-foreground">
                         {ingredientNutrition.has(i) ? (
                           <div className="flex flex-col items-end">
-                            <span className="tabular-nums">{ingredientNutrition.get(i)!.totalFat.toFixed(1)}g</span>
+                            <span className="tabular-nums text-xs">{ingredientNutrition.get(i)!.totalFat.toFixed(1)}</span>
                             {nutrition && nutrition.totalFat > 0 && (
-                              <span className="text-xs text-muted-foreground/70">
-                                {((ingredientNutrition.get(i)!.totalFat / nutrition.totalFat) * 100).toFixed(1)}%
+                              <span className="text-[10px] text-muted-foreground/70">
+                                {((ingredientNutrition.get(i)!.totalFat / nutrition.totalFat) * 100).toFixed(0)}%
                               </span>
                             )}
                           </div>
                         ) : (
-                          <span>—</span>
+                          <span className="text-xs">—</span>
                         )}
                       </td>
-                      <td className="text-right px-3 py-2.5 text-muted-foreground">
+                      <td className="text-right px-1.5 py-2 text-muted-foreground">
                         {ingredientCosts.has(i) && ingredientCosts.get(i)! > 0 ? (
                           <div className="flex flex-col items-end">
-                            <span className="tabular-nums">R$ {ingredientCosts.get(i)!.toFixed(2)}</span>
+                            <span className="tabular-nums text-xs">{ingredientCosts.get(i)!.toFixed(2)}</span>
                             {cost !== null && cost > 0 && (
-                              <span className="text-xs text-muted-foreground/70">
-                                {((ingredientCosts.get(i)! / cost) * 100).toFixed(1)}%
+                              <span className="text-[10px] text-muted-foreground/70">
+                                {((ingredientCosts.get(i)! / cost) * 100).toFixed(0)}%
                               </span>
                             )}
                           </div>
                         ) : (
-                          <span>—</span>
+                          <span className="text-xs">—</span>
                         )}
                       </td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex items-center gap-1 justify-end">
+                      <td className="px-1.5 py-2">
+                        <div className="flex items-center gap-0.5 justify-end">
                           <button
                             onClick={() => editingIndex === i ? cancelEdit() : startEdit(i)}
-                            className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                            className="p-1 rounded hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
                             title="Editar"
                           >
-                            {editingIndex === i ? <ChevronUp size={16} /> : <Pencil size={16} />}
+                            {editingIndex === i ? <ChevronUp size={14} /> : <Pencil size={14} />}
                           </button>
                           <button
                             onClick={() => handleRemoveIngredient(i)}
-                            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-muted-foreground hover:text-destructive"
+                            className="p-1 rounded hover:bg-red-50 transition-colors text-muted-foreground hover:text-destructive"
                             title="Excluir"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </td>
