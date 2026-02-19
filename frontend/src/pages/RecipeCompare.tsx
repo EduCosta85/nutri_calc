@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, Plus, Trash2 } from "lucide-react";
 import { useRecipes } from "../hooks/useRecipes";
 import { useRawMaterials } from "../hooks/useRawMaterials";
-import type { Recipe, NutritionInfo } from "../types";
+import type { Recipe, NutritionInfo, RecipeIngredient } from "../types";
 import { calcRecipeNutrition } from "../utils/nutrition";
 import { calcRecipeCost } from "../utils/cost";
+import { IngredientSearch } from "../components/IngredientSearch";
 
 export function RecipeComparePage() {
   const { id1, id2 } = useParams();
-  const { getById } = useRecipes();
+  const { getById, recipes } = useRecipes();
   const { materials } = useRawMaterials();
   
   const [recipe1, setRecipe1] = useState<Recipe | null>(null);
@@ -21,38 +22,44 @@ export function RecipeComparePage() {
   const [cost1, setCost1] = useState<number | null>(null);
   const [cost2, setCost2] = useState<number | null>(null);
 
+  const [addType1, setAddType1] = useState<"raw_material" | "recipe">("raw_material");
+  const [addRefId1, setAddRefId1] = useState<string | number | "">("");
+  const [addQty1, setAddQty1] = useState(0);
+
+  const [addType2, setAddType2] = useState<"raw_material" | "recipe">("raw_material");
+  const [addRefId2, setAddRefId2] = useState<string | number | "">("");
+  const [addQty2, setAddQty2] = useState(0);
+
   useEffect(() => {
-    if (id1) {
-      getById(id1).then((r) => {
-        if (r) {
-          setRecipe1(r);
-          calcRecipeNutrition(r).then(setNutrition1);
-          calcRecipeCost(r).then(setCost1);
-        }
-      });
-    }
+    if (id1) getById(id1).then((r) => { if (r) setRecipe1(r); });
   }, [id1, getById]);
 
   useEffect(() => {
-    if (id2) {
-      getById(id2).then((r) => {
-        if (r) {
-          setRecipe2(r);
-          calcRecipeNutrition(r).then(setNutrition2);
-          calcRecipeCost(r).then(setCost2);
-        }
-      });
-    }
+    if (id2) getById(id2).then((r) => { if (r) setRecipe2(r); });
   }, [id2, getById]);
 
-  function getIngredientName(ing: Recipe["ingredients"][0]): string {
+  useEffect(() => {
+    if (recipe1) {
+      calcRecipeNutrition(recipe1).then(setNutrition1);
+      calcRecipeCost(recipe1).then(setCost1);
+    }
+  }, [recipe1]);
+
+  useEffect(() => {
+    if (recipe2) {
+      calcRecipeNutrition(recipe2).then(setNutrition2);
+      calcRecipeCost(recipe2).then(setCost2);
+    }
+  }, [recipe2]);
+
+  function getIngredientName(ing: RecipeIngredient): string {
     if (ing.type === "raw_material") {
       return materials.find((m) => String(m.id) === String(ing.referenceId))?.name ?? "???";
     }
-    return "Sub-receita";
+    return recipes.find((r) => String(r.id) === String(ing.referenceId))?.name ?? "Sub-receita";
   }
 
-  function getUnit(ing: Recipe["ingredients"][0]): string {
+  function getUnit(ing: RecipeIngredient): string {
     if (ing.type === "recipe") return "g";
     return materials.find((m) => String(m.id) === String(ing.referenceId))?.unit ?? "g";
   }
@@ -63,9 +70,7 @@ export function RecipeComparePage() {
     const isBetter = lowerIsBetter ? diff < 0 : diff > 0;
     const isWorse = lowerIsBetter ? diff > 0 : diff < 0;
 
-    if (diff === 0) {
-      return <span className="text-muted-foreground text-xs">—</span>;
-    }
+    if (Math.abs(diff) < 0.01) return <span className="text-muted-foreground text-xs">—</span>;
 
     return (
       <span className={`text-xs flex items-center gap-0.5 ${isBetter ? 'text-green-600' : isWorse ? 'text-red-600' : 'text-muted-foreground'}`}>
@@ -89,34 +94,121 @@ export function RecipeComparePage() {
         Voltar
       </Link>
 
-      <h1 className="text-2xl font-bold mb-6 text-center">Comparação de Receitas</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">Comparação de Receitas (Editável em Tempo Real)</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recipe 1 */}
+        {/* RECIPE 1 - EDITABLE */}
         <div className="card">
           <div className="border-b border-border pb-3 mb-4">
-            <h2 className="text-xl font-bold">{recipe1.name}</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Rendimento: {recipe1.yieldGrams}g · Porção: {recipe1.servingSize}g ({recipe1.servingName})
-            </p>
+            <input
+              type="text"
+              value={recipe1.name}
+              onChange={(e) => setRecipe1({ ...recipe1, name: e.target.value })}
+              className="text-xl font-bold w-full bg-transparent border-0 p-0 focus:outline-none focus:ring-0"
+            />
+            <div className="flex gap-4 mt-2 text-sm">
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Rendimento:</span>
+                <input
+                  type="number"
+                  min="1"
+                  value={recipe1.yieldGrams || ""}
+                  onChange={(e) => setRecipe1({ ...recipe1, yieldGrams: parseFloat(e.target.value) || 0 })}
+                  className="w-16 px-1 py-0.5 text-sm rounded border border-border"
+                />
+                <span>g</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Porção:</span>
+                <input
+                  type="number"
+                  min="1"
+                  value={recipe1.servingSize || ""}
+                  onChange={(e) => setRecipe1({ ...recipe1, servingSize: parseFloat(e.target.value) || 0 })}
+                  className="w-16 px-1 py-0.5 text-sm rounded border border-border"
+                />
+                <span>g</span>
+              </div>
+            </div>
           </div>
 
-          {/* Ingredients */}
           <div className="mb-4">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
               Ingredientes
             </h3>
-            <ul className="space-y-1 text-sm">
+            <ul className="space-y-1 text-sm mb-3">
               {recipe1.ingredients.map((ing, i) => (
-                <li key={i} className="flex justify-between">
-                  <span>{getIngredientName(ing)}</span>
-                  <span className="text-muted-foreground">{ing.quantity}{getUnit(ing)}</span>
+                <li key={i} className="flex items-center justify-between gap-2 bg-secondary/30 rounded px-2 py-1">
+                  <span className="flex-1 truncate">{getIngredientName(ing)}</span>
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="0.1"
+                    value={ing.quantity || ""}
+                    onChange={(e) => {
+                      const updated = [...recipe1.ingredients];
+                      updated[i] = { ...updated[i], quantity: parseFloat(e.target.value) || 0 };
+                      setRecipe1({ ...recipe1, ingredients: updated });
+                    }}
+                    className="w-16 px-1 py-0.5 text-xs rounded border border-border text-right"
+                  />
+                  <span className="text-xs text-muted-foreground">{getUnit(ing)}</span>
+                  <button
+                    onClick={() => setRecipe1({ ...recipe1, ingredients: recipe1.ingredients.filter((_, idx) => idx !== i) })}
+                    className="p-0.5 hover:bg-red-50 rounded text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </li>
               ))}
             </ul>
+            <div className="bg-secondary/20 rounded p-2 space-y-2">
+              <div className="flex gap-2">
+                <select
+                  value={addType1}
+                  onChange={(e) => { setAddType1(e.target.value as any); setAddRefId1(""); }}
+                  className="text-xs px-2 py-1 rounded border border-border"
+                >
+                  <option value="raw_material">MP</option>
+                  <option value="recipe">Receita</option>
+                </select>
+                <IngredientSearch
+                  options={addType1 === "raw_material" 
+                    ? materials.map(m => ({ id: m.id!, name: m.name }))
+                    : recipes.filter(r => String(r.id) !== String(id1)).map(r => ({ id: r.id!, name: r.name }))
+                  }
+                  value={addRefId1}
+                  onChange={setAddRefId1}
+                  placeholder="Item..."
+                />
+                <input
+                  type="number"
+                  min="0.1"
+                  step="0.1"
+                  placeholder="Qtd"
+                  value={addQty1 || ""}
+                  onChange={(e) => setAddQty1(parseFloat(e.target.value) || 0)}
+                  className="w-16 px-1 py-1 text-xs rounded border border-border"
+                />
+                <button
+                  onClick={() => {
+                    if (addRefId1 !== "" && addQty1 > 0) {
+                      setRecipe1({
+                        ...recipe1,
+                        ingredients: [...recipe1.ingredients, { type: addType1, referenceId: addRefId1, quantity: addQty1 }]
+                      });
+                      setAddRefId1("");
+                      setAddQty1(0);
+                    }
+                  }}
+                  className="px-2 py-1 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Totals */}
           <div className="border-t border-border pt-4 space-y-2">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
               Totais
@@ -129,7 +221,7 @@ export function RecipeComparePage() {
               <div>
                 <span className="text-muted-foreground">Custo/100g:</span>
                 <p className="font-semibold">
-                  {cost1 !== null ? `R$ ${((cost1 / recipe1.yieldGrams) * 100).toFixed(2)}` : '—'}
+                  {cost1 !== null && recipe1.yieldGrams > 0 ? `R$ ${((cost1 / recipe1.yieldGrams) * 100).toFixed(2)}` : '—'}
                 </p>
               </div>
               {nutrition1 && (
@@ -156,31 +248,118 @@ export function RecipeComparePage() {
           </div>
         </div>
 
-        {/* Recipe 2 with diffs */}
+        {/* RECIPE 2 - EDITABLE WITH DIFFS */}
         <div className="card">
           <div className="border-b border-border pb-3 mb-4">
-            <h2 className="text-xl font-bold">{recipe2.name}</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Rendimento: {recipe2.yieldGrams}g · Porção: {recipe2.servingSize}g ({recipe2.servingName})
-            </p>
+            <input
+              type="text"
+              value={recipe2.name}
+              onChange={(e) => setRecipe2({ ...recipe2, name: e.target.value })}
+              className="text-xl font-bold w-full bg-transparent border-0 p-0 focus:outline-none focus:ring-0"
+            />
+            <div className="flex gap-4 mt-2 text-sm">
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Rendimento:</span>
+                <input
+                  type="number"
+                  min="1"
+                  value={recipe2.yieldGrams || ""}
+                  onChange={(e) => setRecipe2({ ...recipe2, yieldGrams: parseFloat(e.target.value) || 0 })}
+                  className="w-16 px-1 py-0.5 text-sm rounded border border-border"
+                />
+                <span>g</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Porção:</span>
+                <input
+                  type="number"
+                  min="1"
+                  value={recipe2.servingSize || ""}
+                  onChange={(e) => setRecipe2({ ...recipe2, servingSize: parseFloat(e.target.value) || 0 })}
+                  className="w-16 px-1 py-0.5 text-sm rounded border border-border"
+                />
+                <span>g</span>
+              </div>
+            </div>
           </div>
 
-          {/* Ingredients */}
           <div className="mb-4">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
               Ingredientes
             </h3>
-            <ul className="space-y-1 text-sm">
+            <ul className="space-y-1 text-sm mb-3">
               {recipe2.ingredients.map((ing, i) => (
-                <li key={i} className="flex justify-between">
-                  <span>{getIngredientName(ing)}</span>
-                  <span className="text-muted-foreground">{ing.quantity}{getUnit(ing)}</span>
+                <li key={i} className="flex items-center justify-between gap-2 bg-secondary/30 rounded px-2 py-1">
+                  <span className="flex-1 truncate">{getIngredientName(ing)}</span>
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="0.1"
+                    value={ing.quantity || ""}
+                    onChange={(e) => {
+                      const updated = [...recipe2.ingredients];
+                      updated[i] = { ...updated[i], quantity: parseFloat(e.target.value) || 0 };
+                      setRecipe2({ ...recipe2, ingredients: updated });
+                    }}
+                    className="w-16 px-1 py-0.5 text-xs rounded border border-border text-right"
+                  />
+                  <span className="text-xs text-muted-foreground">{getUnit(ing)}</span>
+                  <button
+                    onClick={() => setRecipe2({ ...recipe2, ingredients: recipe2.ingredients.filter((_, idx) => idx !== i) })}
+                    className="p-0.5 hover:bg-red-50 rounded text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </li>
               ))}
             </ul>
+            <div className="bg-secondary/20 rounded p-2 space-y-2">
+              <div className="flex gap-2">
+                <select
+                  value={addType2}
+                  onChange={(e) => { setAddType2(e.target.value as any); setAddRefId2(""); }}
+                  className="text-xs px-2 py-1 rounded border border-border"
+                >
+                  <option value="raw_material">MP</option>
+                  <option value="recipe">Receita</option>
+                </select>
+                <IngredientSearch
+                  options={addType2 === "raw_material" 
+                    ? materials.map(m => ({ id: m.id!, name: m.name }))
+                    : recipes.filter(r => String(r.id) !== String(id2)).map(r => ({ id: r.id!, name: r.name }))
+                  }
+                  value={addRefId2}
+                  onChange={setAddRefId2}
+                  placeholder="Item..."
+                />
+                <input
+                  type="number"
+                  min="0.1"
+                  step="0.1"
+                  placeholder="Qtd"
+                  value={addQty2 || ""}
+                  onChange={(e) => setAddQty2(parseFloat(e.target.value) || 0)}
+                  className="w-16 px-1 py-1 text-xs rounded border border-border"
+                />
+                <button
+                  onClick={() => {
+                    if (addRefId2 !== "" && addQty2 > 0) {
+                      setRecipe2({
+                        ...recipe2,
+                        ingredients: [...recipe2.ingredients, { type: addType2, referenceId: addRefId2, quantity: addQty2 }]
+                      });
+                      setAddRefId2("");
+                      setAddQty2(0);
+                    }
+                  }}
+                  className="px-2 py-1 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Totals with diffs */}
           <div className="border-t border-border pt-4 space-y-2">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
               Totais (vs. {recipe1.name})
@@ -197,9 +376,9 @@ export function RecipeComparePage() {
                 <span className="text-muted-foreground">Custo/100g:</span>
                 <div className="flex items-center gap-2">
                   <p className="font-semibold">
-                    {cost2 !== null ? `R$ ${((cost2 / recipe2.yieldGrams) * 100).toFixed(2)}` : '—'}
+                    {cost2 !== null && recipe2.yieldGrams > 0 ? `R$ ${((cost2 / recipe2.yieldGrams) * 100).toFixed(2)}` : '—'}
                   </p>
-                  {cost1 !== null && cost2 !== null && renderDiff(
+                  {cost1 !== null && cost2 !== null && recipe1.yieldGrams > 0 && recipe2.yieldGrams > 0 && renderDiff(
                     (cost1 / recipe1.yieldGrams) * 100,
                     (cost2 / recipe2.yieldGrams) * 100,
                     '',
