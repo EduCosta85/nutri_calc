@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Pencil, ArrowLeft, Clock, DollarSign, Trash2, Save, X, Plus, ChevronUp } from "lucide-react";
+import { Pencil, ArrowLeft, Clock, DollarSign, Trash2, Save, X, Plus, ChevronUp, ChevronDown } from "lucide-react";
 import { useRecipes } from "../hooks/useRecipes";
 import { useRawMaterials } from "../hooks/useRawMaterials";
 import type { Recipe } from "../types";
@@ -18,8 +18,10 @@ export function RecipeDetailPage() {
   const [nutrition, setNutrition] = useState<NutritionInfo | null>(null);
   const [cost, setCost] = useState<number | null>(null);
   const [ingredientCosts, setIngredientCosts] = useState<Map<number, number>>(new Map());
+  const [ingredientNutrition, setIngredientNutrition] = useState<Map<number, NutritionInfo>>(new Map());
   
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [editType, setEditType] = useState<"raw_material" | "recipe">("raw_material");
   const [editRefId, setEditRefId] = useState<string | number | "">("");
   const [editQty, setEditQty] = useState(0);
@@ -74,6 +76,60 @@ export function RecipeDetailPage() {
     calculateIngredientCosts();
   }, [recipe, materials, recipes]);
 
+  useEffect(() => {
+    if (!recipe) return;
+    
+    async function calculateIngredientNutrition() {
+      if (!recipe) return;
+      const nutritionMap = new Map<number, NutritionInfo>();
+      
+      for (let i = 0; i < recipe.ingredients.length; i++) {
+        const ing = recipe.ingredients[i];
+        const factor = ing.quantity / 100;
+        
+        if (ing.type === "raw_material") {
+          const mat = materials.find((m) => String(m.id) === String(ing.referenceId));
+          if (mat) {
+            nutritionMap.set(i, {
+              calories: mat.caloriesPer100g * factor,
+              carbs: mat.carbsPer100g * factor,
+              totalSugars: mat.totalSugarsPer100g * factor,
+              addedSugars: mat.addedSugarsPer100g * factor,
+              protein: mat.proteinPer100g * factor,
+              totalFat: mat.totalFatPer100g * factor,
+              saturatedFat: mat.saturatedFatPer100g * factor,
+              transFat: mat.transFatPer100g * factor,
+              fiber: mat.fiberPer100g * factor,
+              sodium: mat.sodiumPer100g * factor,
+            });
+          }
+        } else {
+          const subRecipe = recipes.find((r) => String(r.id) === String(ing.referenceId));
+          if (subRecipe) {
+            const subNutrition = await calcRecipeNutrition(subRecipe);
+            const scaleFactor = ing.quantity / subRecipe.yieldGrams;
+            nutritionMap.set(i, {
+              calories: subNutrition.calories * scaleFactor,
+              carbs: subNutrition.carbs * scaleFactor,
+              totalSugars: subNutrition.totalSugars * scaleFactor,
+              addedSugars: subNutrition.addedSugars * scaleFactor,
+              protein: subNutrition.protein * scaleFactor,
+              totalFat: subNutrition.totalFat * scaleFactor,
+              saturatedFat: subNutrition.saturatedFat * scaleFactor,
+              transFat: subNutrition.transFat * scaleFactor,
+              fiber: subNutrition.fiber * scaleFactor,
+              sodium: subNutrition.sodium * scaleFactor,
+            });
+          }
+        }
+      }
+      
+      setIngredientNutrition(nutritionMap);
+    }
+    
+    calculateIngredientNutrition();
+  }, [recipe, materials, recipes]);
+
   function getIngredientUnit(ing: RecipeIngredient): string {
     if (ing.type === "recipe") return "g";
     return materials.find((m) => String(m.id) === String(ing.referenceId))?.unit ?? "g";
@@ -125,6 +181,7 @@ export function RecipeDetailPage() {
     setEditQty(ing.quantity);
     setEditingIndex(index);
     setShowAddNew(false);
+    setExpandedIndex(null);
   }
 
   function cancelEdit() {
@@ -202,7 +259,7 @@ export function RecipeDetailPage() {
             </h2>
             {!showAddNew && (
               <button
-                onClick={() => { setShowAddNew(true); setEditingIndex(null); }}
+                onClick={() => { setShowAddNew(true); setEditingIndex(null); setExpandedIndex(null); }}
                 className="btn btn-primary !text-xs !px-2 !py-1"
               >
                 <Plus size={14} /> Adicionar
@@ -225,7 +282,7 @@ export function RecipeDetailPage() {
                   <>
                     <tr
                       key={i}
-                      className={`${i < recipe.ingredients.length - 1 || editingIndex === i || showAddNew ? "border-b border-border" : ""} hover:bg-secondary/30 transition-colors`}
+                      className={`${i < recipe.ingredients.length - 1 || editingIndex === i || expandedIndex === i || showAddNew ? "border-b border-border" : ""} hover:bg-secondary/30 transition-colors`}
                     >
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2">
@@ -266,11 +323,21 @@ export function RecipeDetailPage() {
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-1 justify-end">
                           <button
+                            onClick={() => {
+                              setExpandedIndex(expandedIndex === i ? null : i);
+                              if (expandedIndex !== i) setEditingIndex(null);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
+                            title="Ver macros"
+                          >
+                            {expandedIndex === i ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          </button>
+                          <button
                             onClick={() => editingIndex === i ? cancelEdit() : startEdit(i)}
                             className="p-1.5 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-foreground"
                             title="Editar"
                           >
-                            {editingIndex === i ? <ChevronUp size={16} /> : <Pencil size={16} />}
+                            <Pencil size={16} />
                           </button>
                           <button
                             onClick={() => handleRemoveIngredient(i)}
@@ -282,6 +349,60 @@ export function RecipeDetailPage() {
                         </div>
                       </td>
                     </tr>
+
+                    {/* Nutrition details row */}
+                    {expandedIndex === i && ingredientNutrition.has(i) && (
+                      <tr key={`${i}-nutrition`} className="border-b border-border bg-secondary/20">
+                        <td colSpan={4} className="px-4 py-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                            <div>
+                              <span className="text-muted-foreground">Calorias:</span>
+                              <div className="font-medium">
+                                {ingredientNutrition.get(i)!.calories.toFixed(1)} kcal
+                                {nutrition && nutrition.calories > 0 && (
+                                  <span className="ml-1 text-muted-foreground/70">
+                                    ({((ingredientNutrition.get(i)!.calories / nutrition.calories) * 100).toFixed(1)}%)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Carboidratos:</span>
+                              <div className="font-medium">
+                                {ingredientNutrition.get(i)!.carbs.toFixed(1)}g
+                                {nutrition && nutrition.carbs > 0 && (
+                                  <span className="ml-1 text-muted-foreground/70">
+                                    ({((ingredientNutrition.get(i)!.carbs / nutrition.carbs) * 100).toFixed(1)}%)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Proteínas:</span>
+                              <div className="font-medium">
+                                {ingredientNutrition.get(i)!.protein.toFixed(1)}g
+                                {nutrition && nutrition.protein > 0 && (
+                                  <span className="ml-1 text-muted-foreground/70">
+                                    ({((ingredientNutrition.get(i)!.protein / nutrition.protein) * 100).toFixed(1)}%)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Gorduras:</span>
+                              <div className="font-medium">
+                                {ingredientNutrition.get(i)!.totalFat.toFixed(1)}g
+                                {nutrition && nutrition.totalFat > 0 && (
+                                  <span className="ml-1 text-muted-foreground/70">
+                                    ({((ingredientNutrition.get(i)!.totalFat / nutrition.totalFat) * 100).toFixed(1)}%)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
 
                     {/* Inline edit row */}
                     {editingIndex === i && (
