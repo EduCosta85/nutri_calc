@@ -15,6 +15,7 @@ import {
   signUpWithEmail,
   logOut,
   resetPassword as resetPwd,
+  checkRedirectResult,
   type UserCredential,
 } from "../services/auth";
 import { auth } from "../firebase/config";
@@ -43,6 +44,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check for Google redirect result on page load
+    checkRedirectResult().catch(() => {});
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);

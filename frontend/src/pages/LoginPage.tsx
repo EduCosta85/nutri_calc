@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { getAuthErrorMessage } from "../services/auth";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 export function LoginPage() {
@@ -54,8 +55,9 @@ export function LoginPage() {
         await signInWithEmail(email, password);
       }
       navigate(from, { replace: true });
-    } catch {
-      // Error is handled by AuthContext
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code ?? "";
+      setLocalError(getAuthErrorMessage(code));
     } finally {
       setIsLoading(false);
     }
@@ -68,8 +70,11 @@ export function LoginPage() {
     try {
       await signInWithGoogle();
       navigate(from, { replace: true });
-    } catch {
-      // Error is handled by AuthContext
+    } catch (err: unknown) {
+      const code = (err as { code?: string }).code ?? "";
+      if (code !== "auth/popup-blocked" && code !== "auth/cancelled-popup-request") {
+        setLocalError(getAuthErrorMessage(code));
+      }
     } finally {
       setIsLoading(false);
     }

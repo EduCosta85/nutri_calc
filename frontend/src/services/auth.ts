@@ -1,5 +1,7 @@
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
@@ -15,10 +17,40 @@ export type { UserCredential };
 const googleProvider = new GoogleAuthProvider();
 
 /**
- * Sign in with Google
+ * Sign in with Google — tries popup first, falls back to redirect.
+ * Popup fails on many mobile browsers and some hosted environments.
  */
 export async function signInWithGoogle(): Promise<UserCredential> {
-  return signInWithPopup(auth, googleProvider);
+  try {
+    return await signInWithPopup(auth, googleProvider);
+  } catch (error: unknown) {
+    const code = (error as { code?: string }).code;
+    // Popup blocked or unavailable — fall back to redirect
+    if (
+      code === "auth/popup-blocked" ||
+      code === "auth/popup-closed-by-user" ||
+      code === "auth/cancelled-popup-request" ||
+      code === "auth/operation-not-supported-in-this-environment"
+    ) {
+      await signInWithRedirect(auth, googleProvider);
+      // After redirect, the page reloads and getRedirectResult picks it up
+      // Return a never-resolving promise since we're redirecting
+      return new Promise(() => {});
+    }
+    throw error;
+  }
+}
+
+/**
+ * Check for redirect result on page load.
+ * Must be called once when the app initializes.
+ */
+export async function checkRedirectResult(): Promise<UserCredential | null> {
+  try {
+    return await getRedirectResult(auth);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -66,18 +98,19 @@ export function getCurrentUser(): User | null {
  * Auth error codes mapping for user-friendly messages
  */
 export const AUTH_ERRORS = {
-  "auth/email-already-in-use": "Este email já está em uso",
-  "auth/invalid-email": "Email inválido",
-  "auth/operation-not-allowed": "Operação não permitida",
-  "auth/weak-password": "Senha muito fraca",
-  "auth/user-disabled": "Usuário desabilitado",
-  "auth/user-not-found": "Usuário não encontrado",
+  "auth/email-already-in-use": "Este email ja esta em uso",
+  "auth/invalid-email": "Email invalido",
+  "auth/operation-not-allowed": "Operacao nao permitida",
+  "auth/weak-password": "Senha muito fraca (minimo 6 caracteres)",
+  "auth/user-disabled": "Usuario desabilitado",
+  "auth/user-not-found": "Usuario nao encontrado",
   "auth/wrong-password": "Senha incorreta",
-  "auth/invalid-credential": "Credenciais inválidas",
-  "auth/popup-closed-by-user": "Popup fechado pelo usuário",
+  "auth/invalid-credential": "Email ou senha incorretos",
+  "auth/popup-closed-by-user": "Login cancelado",
+  "auth/popup-blocked": "Popup bloqueado — tentando redirecionamento...",
   "auth/account-exists-with-different-credential":
     "Conta existe com credencial diferente",
-  "auth/network-request-failed": "Erro de conexão",
+  "auth/network-request-failed": "Erro de conexao — verifique sua internet",
 } as const;
 
 export type AuthErrorCode = keyof typeof AUTH_ERRORS;
