@@ -100,7 +100,7 @@ export function getCurrentUser(): User | null {
 export const AUTH_ERRORS = {
   "auth/email-already-in-use": "Este email ja esta em uso",
   "auth/invalid-email": "Email invalido",
-  "auth/operation-not-allowed": "Operacao nao permitida",
+  "auth/operation-not-allowed": "Operacao nao permitida. Verifique se o metodo de login esta habilitado no Firebase.",
   "auth/weak-password": "Senha muito fraca (minimo 6 caracteres)",
   "auth/user-disabled": "Usuario desabilitado",
   "auth/user-not-found": "Usuario nao encontrado",
@@ -111,6 +111,9 @@ export const AUTH_ERRORS = {
   "auth/account-exists-with-different-credential":
     "Conta existe com credencial diferente",
   "auth/network-request-failed": "Erro de conexao — verifique sua internet",
+  "auth/project-not-found": "Projeto Firebase nao encontrado ou desativado. Contate o administrador.",
+  "auth/too-many-requests": "Muitas tentativas. Aguarde alguns minutos.",
+  "auth/internal-error": "Erro interno do servidor. O projeto Firebase pode estar em manutencao.",
 } as const;
 
 export type AuthErrorCode = keyof typeof AUTH_ERRORS;
@@ -119,5 +122,6 @@ export type AuthErrorCode = keyof typeof AUTH_ERRORS;
  * Get user-friendly error message
  */
 export function getAuthErrorMessage(errorCode: string): string {
-  return AUTH_ERRORS[errorCode as AuthErrorCode] || "Erro desconhecido";
+  if (!errorCode) return "Erro de autenticacao. Verifique sua conexao e tente novamente.";
+  return AUTH_ERRORS[errorCode as AuthErrorCode] || `Erro de autenticacao (${errorCode}). Tente novamente.`;
 }

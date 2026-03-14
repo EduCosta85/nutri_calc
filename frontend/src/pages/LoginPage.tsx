@@ -57,7 +57,12 @@ export function LoginPage() {
       navigate(from, { replace: true });
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? "";
-      setLocalError(getAuthErrorMessage(code));
+      const message = (err as { message?: string }).message ?? "";
+      if (message.includes("PROJECT_SOFT_DELETED") || message.includes("PROJECT_NOT_FOUND")) {
+        setLocalError("Projeto Firebase desativado ou em restauracao. Aguarde alguns minutos e tente novamente.");
+      } else {
+        setLocalError(getAuthErrorMessage(code));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +77,12 @@ export function LoginPage() {
       navigate(from, { replace: true });
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? "";
-      if (code !== "auth/popup-blocked" && code !== "auth/cancelled-popup-request") {
+      const message = (err as { message?: string }).message ?? "";
+      if (code === "auth/popup-blocked" || code === "auth/cancelled-popup-request") {
+        // Redirect is happening, don't show error
+      } else if (message.includes("PROJECT_SOFT_DELETED") || message.includes("PROJECT_NOT_FOUND")) {
+        setLocalError("Projeto Firebase desativado ou em restauracao. Aguarde alguns minutos e tente novamente.");
+      } else {
         setLocalError(getAuthErrorMessage(code));
       }
     } finally {
