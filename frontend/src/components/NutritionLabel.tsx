@@ -84,7 +84,7 @@ export function NutritionLabel({
 
   function getRaw(key: keyof NutritionInfo, basis: number): number {
     if (yieldGrams === 0 || basis === 0) return 0;
-    return (nutrition[key] / yieldGrams) * basis;
+    return ((nutrition[key] ?? 0) / yieldGrams) * basis;
   }
 
   function makeInfo(basis: number): NutritionInfo {
@@ -175,7 +175,7 @@ export function NutritionLabel({
           {NUTRIENT_ROWS.map(({ key, label, unit, indent, bold }, i) => {
             const val100g = rounded100g[key];
             const valServing = roundedServing[key];
-            const vdPct = calcVdPercent(key, valServing);
+            const vdPct = calcVdPercent(key, valServing ?? 0);
             const isLast = i === NUTRIENT_ROWS.length - 1;
 
             return (
@@ -189,10 +189,10 @@ export function NutritionLabel({
                   {label}
                 </span>
                 <span className="text-right tabular-nums">
-                  {formatValue(val100g, unit)} {unit}
+                  {formatValue(val100g ?? 0, unit)} {unit}
                 </span>
                 <span className="text-right tabular-nums">
-                  {formatValue(valServing, unit)} {unit}
+                  {formatValue(valServing ?? 0, unit)} {unit}
                 </span>
                 <span className="text-right tabular-nums w-10">
                   {vdPct !== null ? `${vdPct}%` : "**"}

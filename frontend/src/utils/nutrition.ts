@@ -29,13 +29,13 @@ export function setRecipesCache(recs: Recipe[]) {
 
 function scale(info: NutritionInfo, factor: number): NutritionInfo {
   const out = { ...EMPTY };
-  for (const k of KEYS) out[k] = info[k] * factor;
+  for (const k of KEYS) out[k] = (info[k] ?? 0) * factor;
   return out;
 }
 
 function sum(a: NutritionInfo, b: NutritionInfo): NutritionInfo {
   const out = { ...EMPTY };
-  for (const k of KEYS) out[k] = a[k] + b[k];
+  for (const k of KEYS) out[k] = (a[k] ?? 0) + (b[k] ?? 0);
   return out;
 }
 

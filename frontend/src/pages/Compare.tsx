@@ -97,8 +97,8 @@ export function ComparePage() {
               </thead>
               <tbody>
                 {NUTRITION_ROWS.map(({ key, label, unit }, i) => {
-                  const valA = per100A[key];
-                  const valB = per100B[key];
+                  const valA = per100A[key] ?? 0;
+                  const valB = per100B[key] ?? 0;
                   const diff = valB - valA;
                   const diffPct = valA > 0 ? ((diff / valA) * 100) : 0;
 

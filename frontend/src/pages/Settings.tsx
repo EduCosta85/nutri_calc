@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { Download, Upload, Trash2, AlertTriangle, LogOut, User } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Download, Upload, Trash2, AlertTriangle, LogOut, User, Palette, CreditCard, ChevronRight } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useRecipes } from "../hooks/useRecipes";
 import { useRawMaterials } from "../hooks/useRawMaterials";
@@ -109,6 +110,30 @@ export function SettingsPage() {
       )}
 
       <div className="max-w-xl mx-auto space-y-6">
+        {/* New settings pages */}
+        <div className="space-y-2">
+          <Link to="/configuracoes/aparencia" className="flex items-center justify-between p-4 bg-card border border-border rounded-lg hover:shadow-sm transition-shadow">
+            <div className="flex items-center gap-3">
+              <Palette size={20} className="text-purple-600" />
+              <div>
+                <p className="font-medium text-sm">Aparência</p>
+                <p className="text-xs text-muted-foreground">Logo, cores</p>
+              </div>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </Link>
+          <Link to="/configuracoes/pagamentos" className="flex items-center justify-between p-4 bg-card border border-border rounded-lg hover:shadow-sm transition-shadow">
+            <div className="flex items-center gap-3">
+              <CreditCard size={20} className="text-green-600" />
+              <div>
+                <p className="font-medium text-sm">Pagamentos</p>
+                <p className="text-xs text-muted-foreground">Mercado Pago PIX</p>
+              </div>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </Link>
+        </div>
+
         {/* Account */}
         <div className="card">
           <div className="flex items-start gap-4">
