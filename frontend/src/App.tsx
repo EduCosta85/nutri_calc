@@ -38,6 +38,7 @@ import { PickupPointListPage } from "./pages/customers/PickupPointList";
 
 // Orders
 import { SalesIntentionListPage } from "./pages/orders/SalesIntentionList";
+import { SalesIntentionDetailsPage } from "./pages/orders/SalesIntentionDetails";
 
 // Reports
 import { ReportsHubPage } from "./pages/reports/ReportsHub";
@@ -108,6 +109,7 @@ function AppRoutes() {
         <Route path="/vendas/rapida" element={<QuickSaleListPage />} />
         <Route path="/vendas/rapida/nova" element={<SaleFormPage />} />
         <Route path="/vendas/intencoes" element={<SalesIntentionListPage />} />
+        <Route path="/vendas/intencoes/:id" element={<SalesIntentionDetailsPage />} />
 
         {/* Customers */}
         <Route path="/clientes" element={<CustomerListPage />} />

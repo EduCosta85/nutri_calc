@@ -2,14 +2,15 @@ import { useCallback, useEffect, useState } from "react";
 import {
   collection,
   doc,
-  addDoc,
-  updateDoc,
+  addDoc as _addDoc,
+  updateDoc as _updateDoc,
   deleteDoc,
   onSnapshot,
   query,
   where,
   type Unsubscribe,
 } from "firebase/firestore";
+import { safeAddDoc as addDoc, safeUpdateDoc as updateDoc } from "../utils/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "../contexts/AuthContext";
 import type { StockLot, StockLotInput } from "../types/inventory";

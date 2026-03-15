@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import {
   doc,
-  setDoc,
+  setDoc as _setDoc,
   onSnapshot,
   type Unsubscribe,
 } from "firebase/firestore";
+import { safeSetDoc as setDoc } from "../utils/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "../contexts/AuthContext";
 import type { AppSettings, AppSettingsInput } from "../types/settings";
