@@ -34,6 +34,9 @@ export function useSalesSkus() {
       });
       setSkus(data);
       setLoading(false);
+    }, (error) => {
+      console.error("useSalesSkus onSnapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

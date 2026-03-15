@@ -36,9 +36,12 @@ export function useAppSettings() {
         // Initialize default settings on first load
         const now = new Date().toISOString();
         const defaults = { ...DEFAULT_APP_SETTINGS, createdAt: now, updatedAt: now };
-        setDoc(settingsRef, defaults);
+        setDoc(settingsRef, defaults).catch(() => {});
         setSettings({ id: "config", ...defaults });
       }
+      setLoading(false);
+    }, (error) => {
+      console.error("useAppSettings onSnapshot error:", error);
       setLoading(false);
     });
 

@@ -40,6 +40,9 @@ export function useRawMaterials() {
       // Update caches for nutrition/cost calculations
       setMaterialsCache(materialsData);
       setCostMaterialsCache(materialsData);
+    }, (error) => {
+      console.error("useRawMaterials onSnapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

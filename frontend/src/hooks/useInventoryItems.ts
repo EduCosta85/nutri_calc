@@ -40,6 +40,9 @@ export function useInventoryItems(filterType?: ItemType) {
       });
       setItems(data);
       setLoading(false);
+    }, (error) => {
+      console.error("useInventoryItems onSnapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

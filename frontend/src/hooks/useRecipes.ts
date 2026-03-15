@@ -42,6 +42,9 @@ export function useRecipes() {
       // Update caches for nutrition/cost calculations
       setRecipesCache(recipesData);
       setCostRecipesCache(recipesData);
+    }, (error) => {
+      console.error("useRecipes onSnapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

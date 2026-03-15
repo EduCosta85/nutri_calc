@@ -38,6 +38,9 @@ export function useStockLots(itemId?: string) {
       });
       setLots(data);
       setLoading(false);
+    }, (error) => {
+      console.error("useStockLots onSnapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

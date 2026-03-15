@@ -40,6 +40,9 @@ export function useCustomerOrders(salesIntentionId?: string) {
       });
       setOrders(data);
       setLoading(false);
+    }, (error) => {
+      console.error("useCustomerOrders onSnapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

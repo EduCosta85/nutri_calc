@@ -35,6 +35,9 @@ export function useQuickSales() {
       });
       setSales(data);
       setLoading(false);
+    }, (error) => {
+      console.error("useQuickSales onSnapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

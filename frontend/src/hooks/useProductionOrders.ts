@@ -41,6 +41,9 @@ export function useProductionOrders(filterStatus?: ProductionOrderStatus) {
       });
       setOrders(data);
       setLoading(false);
+    }, (error) => {
+      console.error("useProductionOrders onSnapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

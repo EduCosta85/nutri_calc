@@ -34,6 +34,9 @@ export function useCustomers() {
       });
       setCustomers(data);
       setLoading(false);
+    }, (error) => {
+      console.error("useCustomers onSnapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();

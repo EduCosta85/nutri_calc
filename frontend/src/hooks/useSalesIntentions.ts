@@ -35,6 +35,9 @@ export function useSalesIntentions() {
       });
       setIntentions(data);
       setLoading(false);
+    }, (error) => {
+      console.error("useSalesIntentions onSnapshot error:", error);
+      setLoading(false);
     });
 
     return () => unsubscribe();
