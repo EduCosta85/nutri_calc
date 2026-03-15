@@ -24,7 +24,7 @@ export function SalesIntentionDetailsPage() {
   const { getById, updateStatus, remove } = useSalesIntentions();
   const { orders, loading: ordersLoading, add: addOrder } = useCustomerOrders(id);
   const { skus: _skus } = useSalesSkus();
-  const { customers } = useCustomers();
+  const { customers, add: addCustomer } = useCustomers();
 
   const [intention, setIntention] = useState<SalesIntention | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,10 +65,21 @@ export function SalesIntentionDetailsPage() {
     if (!id || !orderCustomerName.trim()) return;
     setSavingOrder(true);
     try {
+      const name = orderCustomerName.trim();
+      const phone = orderCustomerPhone || undefined;
+
+      // Auto-create customer if not found
+      const existingCustomer = customers.find(
+        (c) => c.name.toLowerCase() === name.toLowerCase(),
+      );
+      if (!existingCustomer) {
+        await addCustomer({ name, phone });
+      }
+
       await addOrder({
         salesIntentionId: id,
-        customerName: orderCustomerName.trim(),
-        customerPhone: orderCustomerPhone || undefined,
+        customerName: name,
+        customerPhone: phone,
         totalAmount: 0,
         deliveryFee: 0,
         paidInAdvance: false,

@@ -17,7 +17,7 @@ export function SaleFormPage() {
   const navigate = useNavigate();
   const { skus } = useSalesSkus();
   const { add: addSale } = useQuickSales();
-  const { customers } = useCustomers();
+  const { customers, add: addCustomer } = useCustomers();
 
   const [cart, setCart] = useState<CartItem[]>([]);
   const [customerName, setCustomerName] = useState("");
@@ -61,6 +61,16 @@ export function SaleFormPage() {
     if (cart.length === 0) return;
     setProcessing(true);
     try {
+      // Auto-create customer if name provided and not found
+      if (customerName.trim()) {
+        const exists = customers.find(
+          (c) => c.name.toLowerCase() === customerName.trim().toLowerCase(),
+        );
+        if (!exists) {
+          await addCustomer({ name: customerName.trim() });
+        }
+      }
+
       await addSale({
         customerName: customerName || undefined,
         totalAmount: cartTotal,
