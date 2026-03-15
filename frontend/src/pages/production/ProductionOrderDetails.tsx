@@ -68,13 +68,6 @@ export function ProductionOrderDetailsPage() {
     setOrder(updated);
   }
 
-  async function handleCancel() {
-    if (!id || !confirm("Tem certeza que deseja cancelar esta OP?")) return;
-    await updateStatus(id, "CANCELLED");
-    const updated = await getById(id);
-    setOrder(updated);
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -133,7 +126,7 @@ export function ProductionOrderDetailsPage() {
           </button>
         )}
         {canCancel(order.status) && (
-          <button onClick={handleCancel} className="btn btn-secondary flex items-center gap-2 text-red-600">
+          <button onClick={() => navigate(`/producao/${id}/cancelamento`)} className="btn btn-secondary flex items-center gap-2 text-red-600">
             <XCircle size={16} /> Cancelar
           </button>
         )}

@@ -25,6 +25,7 @@ import { ProductionOrderFormPage } from "./pages/production/ProductionOrderForm"
 import { ProductionOrderDetailsPage } from "./pages/production/ProductionOrderDetails";
 import { ProductionOrderSeparationPage } from "./pages/production/ProductionOrderSeparation";
 import { ProductionOrderFinishingPage } from "./pages/production/ProductionOrderFinishing";
+import { ProductionOrderCancellationPage } from "./pages/production/ProductionOrderCancellation";
 
 // Sales
 import { SalesSkuListPage } from "./pages/sales/SalesSkuList";
@@ -40,6 +41,7 @@ import { PickupPointListPage } from "./pages/customers/PickupPointList";
 // Orders
 import { SalesIntentionListPage } from "./pages/orders/SalesIntentionList";
 import { SalesIntentionDetailsPage } from "./pages/orders/SalesIntentionDetails";
+import { CustomerOrderDetailsPage } from "./pages/orders/CustomerOrderDetails";
 
 // Reports
 import { ReportsHubPage } from "./pages/reports/ReportsHub";
@@ -103,6 +105,7 @@ function AppRoutes() {
         <Route path="/producao/:id" element={<ProductionOrderDetailsPage />} />
         <Route path="/producao/:id/separacao" element={<ProductionOrderSeparationPage />} />
         <Route path="/producao/:id/finalizacao" element={<ProductionOrderFinishingPage />} />
+        <Route path="/producao/:id/cancelamento" element={<ProductionOrderCancellationPage />} />
 
         {/* Sales */}
         <Route path="/vendas" element={<SalesSkuListPage />} />
@@ -112,6 +115,7 @@ function AppRoutes() {
         <Route path="/vendas/rapida/nova" element={<SaleFormPage />} />
         <Route path="/vendas/intencoes" element={<SalesIntentionListPage />} />
         <Route path="/vendas/intencoes/:id" element={<SalesIntentionDetailsPage />} />
+        <Route path="/pedido/:orderId" element={<CustomerOrderDetailsPage />} />
 
         {/* Customers */}
         <Route path="/clientes" element={<CustomerListPage />} />

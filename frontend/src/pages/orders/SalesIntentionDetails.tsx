@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import {
   ArrowLeft, Plus, Lock, Unlock, CheckCircle, Trash2,
   ShoppingCart, Users, DollarSign, Package,
@@ -238,7 +238,7 @@ export function SalesIntentionDetailsPage() {
         ) : (
           <div className="space-y-2">
             {orders.map((order) => (
-              <div key={order.id} className="flex items-center justify-between p-4 bg-card border border-border rounded-lg">
+              <Link key={order.id} to={`/pedido/${order.id}`} className="flex items-center justify-between p-4 bg-card border border-border rounded-lg hover:shadow-sm transition-shadow">
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{order.orderNumber}</p>
@@ -259,7 +259,7 @@ export function SalesIntentionDetailsPage() {
                     <p className="text-xs text-muted-foreground">+ R$ {order.deliveryFee.toFixed(2)} entrega</p>
                   )}
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
