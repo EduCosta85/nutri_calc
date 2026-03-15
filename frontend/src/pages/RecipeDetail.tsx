@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Pencil, ArrowLeft, Clock, DollarSign, Trash2, Save, X, Plus, ChevronUp, Copy } from "lucide-react";
+import { Pencil, ArrowLeft, Clock, DollarSign, Trash2, Save, X, Plus, ChevronUp, Copy, Download, Share2 } from "lucide-react";
 import { useRecipes } from "../hooks/useRecipes";
 import { useRawMaterials } from "../hooks/useRawMaterials";
 import type { Recipe } from "../types";
@@ -9,6 +9,7 @@ import { calcRecipeNutrition } from "../utils/nutrition";
 import { calcRecipeCost } from "../utils/cost";
 import { NutritionLabel } from "../components/NutritionLabel";
 import { IngredientSearch } from "../components/IngredientSearch";
+import { captureAndShare, captureElementAsImage, downloadImage } from "../utils/label-capture";
 
 export function RecipeDetailPage() {
   const { id } = useParams();
@@ -592,12 +593,45 @@ export function RecipeDetailPage() {
 
         {/* ANVISA RDC 429/2020 Nutrition Label */}
         {nutrition && (
-          <NutritionLabel
-            nutrition={nutrition}
-            yieldGrams={recipe.yieldGrams}
-            servingSize={recipe.servingSize ?? 0}
-            servingName={recipe.servingName ?? ""}
-          />
+          <div>
+            <div id="nutrition-label-capture">
+              <NutritionLabel
+                nutrition={nutrition}
+                yieldGrams={recipe.yieldGrams}
+                servingSize={recipe.servingSize ?? 0}
+                servingName={recipe.servingName ?? ""}
+              />
+            </div>
+            <div className="flex gap-2 mt-3 no-print">
+              <button
+                onClick={async () => {
+                  const el = document.getElementById("nutrition-label-capture");
+                  if (el) {
+                    const dataUrl = await captureElementAsImage(el);
+                    downloadImage(dataUrl, `rotulo-${recipe.name}`);
+                  }
+                }}
+                className="btn btn-secondary text-xs flex items-center gap-1"
+              >
+                <Download size={14} /> Baixar Rótulo
+              </button>
+              <button
+                onClick={async () => {
+                  const el = document.getElementById("nutrition-label-capture");
+                  if (el) await captureAndShare(el, `rotulo-${recipe.name}`);
+                }}
+                className="btn btn-secondary text-xs flex items-center gap-1"
+              >
+                <Share2 size={14} /> Compartilhar
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="btn btn-secondary text-xs flex items-center gap-1"
+              >
+                Imprimir
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>

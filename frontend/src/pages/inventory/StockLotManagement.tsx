@@ -3,8 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Plus, Trash2, Package } from "lucide-react";
 import { useInventoryItems } from "../../hooks/useInventoryItems";
 import { useStockLots } from "../../hooks/useStockLots";
+import { useStockMovements } from "../../hooks/useStockMovements";
 import { calcWeightedAverageCost, calcTotalStock, sortLotsFIFO } from "../../services/stock";
 import { nextLotNumber } from "../../services/auto-numbering";
+import { convertUnit, getConversionOptions } from "../../services/unit-conversion";
 import type { InventoryItem } from "../../types/inventory";
 
 export function StockLotManagementPage() {
@@ -14,10 +16,13 @@ export function StockLotManagementPage() {
   const { lots, add: addLot, remove: removeLot } = useStockLots(id);
 
   const [item, setItem] = useState<InventoryItem | null>(null);
+  const { record: recordMovement } = useStockMovements(id);
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [newQuantity, setNewQuantity] = useState(0);
   const [newUnitCost, setNewUnitCost] = useState(0);
   const [newExpiryDate, setNewExpiryDate] = useState("");
+  const [entryUnit, setEntryUnit] = useState("");
 
   useEffect(() => {
     if (id) {
@@ -38,19 +43,36 @@ export function StockLotManagementPage() {
   const avgCost = calcWeightedAverageCost(lots);
 
   async function handleAddLot() {
-    if (!id || newQuantity <= 0) return;
-    await addLot({
+    if (!id || !item || newQuantity <= 0) return;
+    const unit = entryUnit || item.unit;
+    // Convert to base unit if different
+    const baseQuantity = convertUnit(newQuantity, unit, item.unit);
+    const baseCost = unit !== item.unit ? convertUnit(newUnitCost, item.unit, unit) : newUnitCost;
+
+    const lotId = await addLot({
       itemId: id,
       lotNumber: nextLotNumber(lots.length),
-      quantity: newQuantity,
-      unitCost: newUnitCost,
+      quantity: baseQuantity,
+      unitCost: baseCost,
       expiryDate: newExpiryDate || null,
       entryDate: new Date().toISOString(),
     });
+
+    // Record stock movement
+    await recordMovement({
+      itemId: id,
+      lotId,
+      quantity: baseQuantity,
+      direction: "entry",
+      source: "manual",
+      createdAt: new Date().toISOString(),
+    });
+
     setShowAddForm(false);
     setNewQuantity(0);
     setNewUnitCost(0);
     setNewExpiryDate("");
+    setEntryUnit("");
   }
 
   if (!item) {
@@ -103,10 +125,24 @@ export function StockLotManagementPage() {
       {showAddForm && (
         <div className="bg-card border border-border rounded-lg p-4 space-y-3">
           <h3 className="font-medium">Novo Lote</h3>
-          <div className="grid grid-cols-3 gap-3">
+          {/* Unit conversion hint */}
+          {entryUnit && entryUnit !== item.unit && (
+            <p className="text-xs text-blue-600 dark:text-blue-400">
+              Estoque em {item.unit} — Entrada em {entryUnit} (será convertido automaticamente)
+            </p>
+          )}
+          <div className="grid grid-cols-4 gap-3">
             <div>
-              <label className="block text-xs text-muted-foreground mb-0.5">Quantidade ({item.unit})</label>
+              <label className="block text-xs text-muted-foreground mb-0.5">Quantidade</label>
               <input type="number" value={newQuantity} onChange={(e) => setNewQuantity(Number(e.target.value))} className="input w-full text-sm" min={0} step="0.1" />
+            </div>
+            <div>
+              <label className="block text-xs text-muted-foreground mb-0.5">Unidade</label>
+              <select value={entryUnit || item.unit} onChange={(e) => setEntryUnit(e.target.value)} className="input w-full text-sm">
+                {getConversionOptions(item.unit).map((opt) => (
+                  <option key={opt.abbreviation} value={opt.abbreviation}>{opt.abbreviation}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-xs text-muted-foreground mb-0.5">Custo unitário (R$)</label>
