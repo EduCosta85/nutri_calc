@@ -63,14 +63,19 @@ export function StockLotManagementPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <button onClick={() => navigate("/estoque")} className="p-2 rounded-lg hover:bg-secondary">
-          <ArrowLeft size={20} />
-        </button>
-        <div>
-          <h1 className="text-2xl font-bold">{item.name}</h1>
-          <p className="text-sm text-muted-foreground">Gestão de Lotes</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate("/estoque")} className="p-2 rounded-lg hover:bg-secondary">
+            <ArrowLeft size={20} />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold">{item.name}</h1>
+            <p className="text-sm text-muted-foreground">Gestão de Lotes</p>
+          </div>
         </div>
+        <button onClick={() => navigate(`/estoque/${id}/movimentacoes`)} className="btn btn-secondary text-xs">
+          Movimentações
+        </button>
       </div>
 
       {/* Summary cards */}

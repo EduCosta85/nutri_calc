@@ -1,12 +1,25 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, ShoppingBag, Tag } from "lucide-react";
+import { Plus, ShoppingBag, Tag, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useSalesSkus } from "../../hooks/useSalesSkus";
 
 export function SalesSkuListPage() {
-  const { skus, loading } = useSalesSkus();
+  const { skus, loading, update, remove } = useSalesSkus();
+  const [showInactive, setShowInactive] = useState(false);
 
   if (loading) {
     return <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary" /></div>;
+  }
+
+  const filtered = showInactive ? skus : skus.filter((s) => s.active);
+
+  async function toggleActive(id: string, currentActive: boolean) {
+    await update(id, { active: !currentActive });
+  }
+
+  async function handleDelete(id: string, name: string) {
+    if (!confirm(`Excluir SKU "${name}"?`)) return;
+    await remove(id);
   }
 
   return (
@@ -27,38 +40,66 @@ export function SalesSkuListPage() {
         </Link>
       </div>
 
-      {skus.length === 0 ? (
+      {/* Filter */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowInactive(false)}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium ${!showInactive ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+        >
+          Ativos ({skus.filter((s) => s.active).length})
+        </button>
+        <button
+          onClick={() => setShowInactive(true)}
+          className={`px-3 py-1.5 rounded-full text-xs font-medium ${showInactive ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+        >
+          Todos ({skus.length})
+        </button>
+      </div>
+
+      {filtered.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <ShoppingBag size={48} className="mx-auto mb-3 opacity-50" />
-          <p>Nenhum SKU cadastrado</p>
+          <p>Nenhum SKU {showInactive ? "cadastrado" : "ativo"}</p>
           <p className="text-xs mt-1">Crie SKUs para poder realizar vendas</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {skus.map((sku) => (
-            <Link
-              key={sku.id}
-              to={`/vendas/sku/${sku.id}`}
-              className="bg-card border border-border rounded-lg p-4 hover:shadow-sm transition-shadow"
-            >
+          {filtered.map((sku) => (
+            <div key={sku.id} className={`bg-card border rounded-lg p-4 ${!sku.active ? "opacity-60 border-dashed border-border" : "border-border"}`}>
               <div className="flex items-start gap-3">
-                {sku.photoUri ? (
-                  <img src={sku.photoUri} alt={sku.name} className="w-16 h-16 rounded-lg object-cover" />
-                ) : (
-                  <div className="w-16 h-16 rounded-lg bg-secondary flex items-center justify-center">
-                    <ShoppingBag size={24} className="text-muted-foreground" />
-                  </div>
-                )}
+                <Link to={`/vendas/sku/${sku.id}`} className="shrink-0">
+                  {sku.photoUri ? (
+                    <img src={sku.photoUri} alt={sku.name} className="w-16 h-16 rounded-lg object-cover" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg bg-secondary flex items-center justify-center">
+                      <ShoppingBag size={24} className="text-muted-foreground" />
+                    </div>
+                  )}
+                </Link>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{sku.name}</p>
+                  <Link to={`/vendas/sku/${sku.id}`}>
+                    <p className="font-medium truncate hover:text-primary">{sku.name}</p>
+                  </Link>
                   {sku.description && <p className="text-xs text-muted-foreground truncate">{sku.description}</p>}
                   <p className="text-lg font-bold text-primary mt-1">R$ {sku.price.toFixed(2)}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${sku.active ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300" : "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"}`}>
-                    {sku.active ? "Ativo" : "Inativo"}
-                  </span>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => sku.id && toggleActive(sku.id, sku.active)}
+                    className="p-1.5 rounded hover:bg-secondary"
+                    title={sku.active ? "Desativar" : "Ativar"}
+                  >
+                    {sku.active ? <Eye size={14} className="text-green-600" /> : <EyeOff size={14} className="text-muted-foreground" />}
+                  </button>
+                  <button
+                    onClick={() => sku.id && handleDelete(sku.id, sku.name)}
+                    className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950"
+                  >
+                    <Trash2 size={14} className="text-red-500" />
+                  </button>
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}

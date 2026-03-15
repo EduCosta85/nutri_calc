@@ -17,6 +17,7 @@ import { useAuth } from "./contexts/AuthContext";
 import { InventoryListPage } from "./pages/inventory/InventoryList";
 import { InventoryItemFormPage } from "./pages/inventory/InventoryItemForm";
 import { StockLotManagementPage } from "./pages/inventory/StockLotManagement";
+import { StockMovementHistoryPage } from "./pages/inventory/StockMovementHistory";
 
 // Production
 import { ProductionOrderListPage } from "./pages/production/ProductionOrderList";
@@ -94,6 +95,7 @@ function AppRoutes() {
         <Route path="/estoque/novo" element={<InventoryItemFormPage />} />
         <Route path="/estoque/:id" element={<StockLotManagementPage />} />
         <Route path="/estoque/:id/editar" element={<InventoryItemFormPage />} />
+        <Route path="/estoque/:id/movimentacoes" element={<StockMovementHistoryPage />} />
 
         {/* Production */}
         <Route path="/producao" element={<ProductionOrderListPage />} />
